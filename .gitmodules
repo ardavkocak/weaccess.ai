@@ -1,6 +1,7 @@
 [submodule "aylik-takip"]
 	path = aylik-takip
 	url = https://github.com/ardavkocak/aylik-takip.git
+	branch = feature/dockerize-and-hours-fix
 [submodule "dokumantasyon-otomasyon"]
 	path = dokumantasyon-otomasyon
 	url = https://github.com/ardavkocak/Dokumantasyon-otomasyon.git
