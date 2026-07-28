@@ -1,0 +1,9 @@
+[submodule "aylik-takip"]
+	path = aylik-takip
+	url = https://git.nevisoft.com.tr/nevisoft/work-hours-tracker.git
+[submodule "dokumantasyon-otomasyon"]
+	path = dokumantasyon-otomasyon
+	url = https://github.com/ardavkocak/Dokumantasyon-otomasyon.git
+[submodule "ofis-gorev-takibi"]
+	path = ofis-gorev-takibi
+	url = https://github.com/khrmncberil/ofis-gorev-takibi.git
