@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>İK Otomasyon</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.tailwindcss.css">
+  <link rel="stylesheet" href="/public/styles.css">
+</head>
+<body class="min-h-screen text-slate-800">
+  <div class="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white">
+    <header class="mx-auto max-w-7xl px-6 py-9">
+      <p class="mb-2 text-sm font-medium uppercase tracking-[.2em] text-indigo-300">İnsan Kaynakları</p>
+      <h1 class="text-3xl font-bold md:text-4xl">Çalışan Otomasyon Paneli</h1>
+      <p class="mt-2 text-slate-300">Excel listenizi yükleyin, çalışan verilerini hızlıca filtreleyin ve düzenleyin.</p>
+    </header>
+  </div>
+  <main class="mx-auto max-w-7xl p-6">
+    <% if (message) { %><p class="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800"><%= message %></p><% } %>
+    <% if (error) { %><p class="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800"><%= error %></p><% } %>
+    <section class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="const password = window.prompt('Şifreyi girin:'); if (password) { window.location.href = '/ayarlar?password=' + encodeURIComponent(password); }" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">⚙️ Ayarlar</button>
+      </div>
+    </section>
+    <% if (showSettings) { %>
+    <section class="panel mb-6 p-6">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold">E-posta ayarları</h2>
+          <p class="text-sm text-slate-500">Şifre: admin123 ile erişilen bu bölümden gönderen ve alıcı e-posta adreslerini düzenleyebilirsiniz.</p>
+        </div>
+      </div>
+      <form action="/ayarlar/guncelle" method="post" class="grid gap-4 md:grid-cols-2">
+        <input type="hidden" name="password" value="admin123">
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">Gönderen e-posta</label>
+          <input name="senderEmail" value="<%= settings.senderEmail || '' %>" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="ornek@firma.com">
+        </div>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">Alıcı e-postaları</label>
+          <textarea name="recipientEmails" rows="4" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="birinci@firma.com&#10;ikinci@firma.com"><%= (settings.recipientEmails || []).join('\n') %></textarea>
+        </div>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">SMTP Host</label>
+          <input name="smtpHost" value="<%= settings.smtpHost || '' %>" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="smtp.example.com">
+        </div>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">SMTP Port</label>
+          <input name="smtpPort" value="<%= settings.smtpPort || '' %>" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="587">
+        </div>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">SMTP Kullanıcı</label>
+          <input name="smtpUser" value="<%= settings.smtpUser || '' %>" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="kullanici@example.com">
+        </div>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">SMTP Parola</label>
+          <input type="password" name="smtpPass" value="<%= settings.smtpPass || '' %>" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Parola">
+        </div>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">TLS/SSL kullanılsın mı?</label>
+          <select name="smtpSecure" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+            <option value="false" <%= settings.smtpSecure ? '' : 'selected' %>>Hayır (STARTTLS)</option>
+            <option value="true" <%= settings.smtpSecure ? 'selected' : '' %>>Evet (SSL/TLS)</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">E-posta From adresi (gönderen)</label>
+          <input name="mailFrom" value="<%= settings.mailFrom || '' %>" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="gonderen@firma.com">
+        </div>
+        <div class="md:col-span-2 flex flex-wrap items-center gap-3">
+          <button class="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700">Kaydet</button>
+          <a href="/" class="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Geri dön</a>
+        </div>
+      </form>
+    </section>
+    <% } %>
+    <section class="mb-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <div class="panel panel-soft p-6">
+        <div class="flex items-center gap-2">
+          <span class="pill">📥 Excel yükleme</span>
+        </div>
+        <h2 class="mt-4 text-lg font-semibold">Çalışan dosyasını yükle</h2>
+        <p class="mt-1 text-sm text-slate-500">Excel'deki ilk satır sütun başlığı olarak korunur; tüm satırlar şık bir veri tablosuna aktarılır.</p>
+        <form action="/excel-yukle" method="post" enctype="multipart/form-data" class="mt-5 flex flex-wrap items-center gap-3">
+          <label class="cursor-pointer rounded-lg border border-dashed border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100">
+            <input id="excel-file" name="excel" type="file" accept=".xlsx,.xls,.csv" required class="sr-only">
+            Dosya seç
+          </label>
+          <span id="file-name" class="max-w-xs truncate text-sm text-slate-500">Henüz dosya seçilmedi</span>
+          <button class="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700">Yükle ve tabloyu oluştur</button>
+        </form>
+      </div>
+      <div class="panel bg-indigo-600 p-6 text-white">
+        <p class="text-sm text-indigo-100">Kayıtlı çalışan</p>
+        <p class="mt-1 text-4xl font-bold"><%= employees.length %></p>
+        <p class="mt-2 text-sm text-indigo-100">Yüklenen bilgiler panelde görünüyor. İK e-postası testini de hızlıca çalıştırabilirsiniz.</p>
+        <form action="/hatirlatmalari-test-et" method="post" class="mt-5">
+          <button class="rounded-lg bg-white/15 px-4 py-2 text-sm font-medium hover:bg-white/25">İK e-postasını test et</button>
+        </form>
+      </div>
+    </section>
+    <section class="panel p-6">
+      <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold">Çalışan Listesi</h2>
+          <p class="text-sm text-slate-500">Arama, sıralama ve sayfalama ile verileri rahatça inceleyin.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="pill">📊 <%= headers.length %> sütun</span>
+          <span class="pill">👥 <%= employees.length %> kayıt</span>
+        </div>
+      </div>
+      <% if (headers.length === 0) { %><div class="rounded-xl border border-dashed border-slate-300 p-10 text-center text-slate-500">Başlamak için bir çalışan Excel dosyası yükleyin.</div><% } else { %>
+      <div class="table-shell"><table id="employees" class="text-sm"><thead><tr><% headers.forEach((header) => { %><th class="whitespace-nowrap px-4 py-3 text-left"><%= header %></th><% }) %></tr></thead><tbody>
+        <% employees.forEach((employee) => { %><tr><% employee.values.forEach((value) => { %><td><%= value instanceof Date ? value.toLocaleDateString('tr-TR') : value %></td><% }) %></tr><% }) %>
+      </tbody></table></div>
+      <% } %>
+    </section>
+  </main>
+  <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+  <script>
+    const input = document.querySelector('#excel-file');
+    input?.addEventListener('change', () => { document.querySelector('#file-name').textContent = input.files[0]?.name || 'Henüz dosya seçilmedi'; });
+    if (document.querySelector('#employees')) {
+      new DataTable('#employees', {
+        language: { url: 'https://cdn.datatables.net/plug-ins/2.1.8/i18n/tr.json' },
+        pageLength: 10,
+        order: [],
+        dom: '<"flex flex-wrap items-center justify-between gap-3 mb-3"lfr><"table-shell"t><"mt-3 flex flex-wrap items-center justify-between gap-3"ip>',
+      });
+    }
+  </script>
+</body></html>

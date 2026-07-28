@@ -1,0 +1,12 @@
+{
+  "senderEmail": "mustafayenidogan06@gmail.com",
+  "recipientEmails": [
+    "mustafayenidogan06@gmail.com"
+  ],
+  "smtpHost": "smtp.gmail.com",
+  "smtpPort": 587,
+  "smtpUser": "mustafayenidogan06@gmail.com",
+  "smtpPass": "ihblqmftdniyddhj",
+  "smtpSecure": false,
+  "mailFrom": "\"İK Otomasyon\" <no-reply@yourdomain.com>"
+}
