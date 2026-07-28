@@ -1,0 +1,68 @@
+{% load inventory_extras %}
+<aside class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon"><i class="bi bi-boxes"></i></div>
+        <div>
+            <div class="brand-title">ZIMMET SISTEMI</div>
+            <div class="brand-subtitle">Stok ve Zimmet Yonetimi</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        {% if request.user.is_admin_role %}
+            <a class="nav-link {% if request.resolver_match.view_name == 'dashboard:home' %}active{% endif %}" href="{% url 'dashboard:home' %}">
+                <i class="bi bi-grid-1x2"></i> <span class="nav-label">Dashboard</span>
+            </a>
+            <a class="nav-link {% if 'employee' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'inventory:employee-list' %}">
+                <i class="bi bi-people"></i> <span class="nav-label">Calisanlar</span>
+            </a>
+            <a class="nav-link {% if 'device' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'inventory:device-list' %}">
+                <i class="bi bi-box-seam"></i> <span class="nav-label">Cihazlar</span>
+            </a>
+            <a class="nav-link {% if 'assignment' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'inventory:assignment-list' %}">
+                <i class="bi bi-clipboard-check"></i> <span class="nav-label">Zimmet Kayitlari</span>
+                {% if pending_return_count %}<span class="badge rounded-pill text-bg-warning">{{ pending_return_count }}</span>{% endif %}
+            </a>
+
+            <div class="nav-section-title">Yonetim</div>
+            <a class="nav-link {% if 'company' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'inventory:company-list' %}">
+                <i class="bi bi-building"></i> <span class="nav-label">Sirketler</span>
+            </a>
+
+            <div class="nav-section-title">Diger</div>
+        {% else %}
+            <a class="nav-link {% if request.resolver_match.url_name == 'my-assignments' %}active{% endif %}" href="{% url 'inventory:my-assignments' %}">
+                <i class="bi bi-laptop"></i> <span class="nav-label">Cihazlarim</span>
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'available-devices' %}active{% endif %}" href="{% url 'inventory:available-devices' %}">
+                <i class="bi bi-inboxes"></i> <span class="nav-label">Bostaki Cihazlar</span>
+            </a>
+        {% endif %}
+
+        <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'accounts:profile' %}">
+            <i class="bi bi-person-circle"></i> <span class="nav-label">Profil</span>
+        </a>
+        <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">
+                <i class="bi bi-box-arrow-right"></i> <span class="nav-label">Cikis Yap</span>
+            </button>
+        </form>
+    </nav>
+
+    <div class="sidebar-user">
+        {% with employee=request.user.employee_profile %}
+        {% if employee and employee.profile_photo %}
+        <img src="{{ employee.profile_photo.url }}" class="avatar-circle" alt="{{ employee.full_name }}">
+        {% else %}
+        <span class="avatar-circle">{{ request.user.get_full_name|default:request.user.username|first|upper }}</span>
+        {% endif %}
+        <div>
+            <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+            <div class="user-role">
+                <span class="status-dot"></span>{{ employee.company.name|default:request.user.get_role_display }}
+            </div>
+        </div>
+        {% endwith %}
+    </div>
+</aside>

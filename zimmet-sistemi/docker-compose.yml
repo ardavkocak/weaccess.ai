@@ -1,0 +1,60 @@
+# Zimmet ve Envanter Yonetim Sistemi - Docker Compose yapilandirmasi
+#
+# BU DOSYA GIT'E GIRER. Bu yuzden hicbir gizli deger (sifre, SECRET_KEY) ya da
+# ortama ozgu ayar icermez; yalnizca yapiyi tanimlar.
+#
+# Tum degiskenlerin degerleri `docker-compose.override.yml` dosyasindadir ve o
+# dosya .gitignore'dadir. Compose, ayni dizindeki override dosyasini OTOMATIK
+# okuyup bu dosyayla birlestirir; ekstra bir -f parametresi gerekmez.
+#
+# Ilk kurulumda:  cp docker-compose.override.yml.example docker-compose.override.yml
+name: nevisoft-inventory
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: c_inventory_system-db
+    volumes:
+      # Veritabani named volume'da tutulur: konteyner silinse de veri kalir.
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # $$ ile kacis yapilir: degisken Compose tarafindan degil, konteynerin
+      # kendi kabugunda cozulur. Boylece kimlik bilgileri bu dosyada yer almaz.
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: c_inventory_system-web
+    environment:
+      # Yalnizca yapisal, gizli OLMAYAN degerler burada durur.
+      # DB_HOST bilerek sabittir: konteynerler birbirine servis adiyla ulasir.
+      # .env'deki 127.0.0.1 degeri konteyner icinde veritabanina degil kendi
+      # localhost'una isaret ederdi.
+      DB_HOST: db
+      DB_PORT: 5432
+    volumes:
+      # Tum proje dizini konteynere baglanir: host'ta yapilan kod degisiklikleri
+      # imaji yeniden insa etmeden konteynere yansir. Bu mount imajdaki `COPY . .`
+      # katmaninin uzerine biner.
+      - .:/app
+      # Named volume yerine host klasorleri baglanir: dosyalar proje dizininde
+      # dogrudan gorulebilir ve yedeklenebilir.
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
+    # Port eslemesi ortama gore degistigi icin docker-compose.override.yml
+    # icindedir; burada tanimlanmaz.
+    depends_on:
+      # Veritabani healthcheck'i gecene kadar web baslatilmaz; ilk `up`ta
+      # "connection refused" ile dusme sorunu bu sayede olusmaz.
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

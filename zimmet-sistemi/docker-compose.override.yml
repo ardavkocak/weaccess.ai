@@ -1,0 +1,40 @@
+# Ortama ozgu degerler ve sirlar. BU DOSYA GIT'E GIRMEZ (.gitignore).
+# Compose bu dosyayi otomatik okur ve docker-compose.yml ile birlestirir.
+#
+# Degerler mevcut .env dosyanizdan uretilmistir; ikisi ayni kalmalidir.
+
+services:
+  db:
+    environment:
+      POSTGRES_DB: zimmet_db
+      POSTGRES_USER: zimmet_user
+      POSTGRES_PASSWORD: "zimmet_pass"
+
+  web:
+    environment:
+      # --- Django ---
+      DEBUG: "True"
+      SECRET_KEY: "django-insecure-degistir-bu-anahtari-production-ortaminda"
+      # Konteynere host'tan localhost:8000 ile erisilir; 0.0.0.0 saglik/ic
+      # kontroller icin eklenmistir.
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+      TIME_ZONE: "Europe/Istanbul"
+
+      # --- Veritabani (yukaridaki db servisiyle birebir ayni olmali) ---
+      DB_NAME: zimmet_db
+      DB_USER: zimmet_user
+      DB_PASSWORD: "zimmet_pass"
+
+      # --- E-posta ---
+      EMAIL_BACKEND: "django.core.mail.backends.console.EmailBackend"
+      EMAIL_HOST: "smtp.gmail.com"
+      EMAIL_PORT: "587"
+      EMAIL_USE_TLS: "True"
+      EMAIL_HOST_USER: ""
+      EMAIL_HOST_PASSWORD: ""
+      DEFAULT_FROM_EMAIL: "Zimmet Sistemi <noreply@zimmet.local>"
+
+    # Port eslemesi yalnizca burada tanimlidir (docker-compose.yml'de yoktur).
+    # Format: "host:konteyner" - 8000 doluysa sol tarafi degistirin, orn "8001:8000".
+    ports:
+      - "8000:8000"

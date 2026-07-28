@@ -1,0 +1,902 @@
+/* ==========================================================================
+   Zimmet ve Envanter Yonetim Sistemi - Ozel Stil Dosyasi
+   Tema: Acik zeminli, yumusak indigo-mavi kurumsal yonetim paneli
+   ========================================================================== */
+
+:root {
+    --brand-primary: #5b7cfa;
+    --brand-primary-dark: #3f5fe0;
+    --brand-primary-light: #eef2fe;
+    --brand-secondary: #8b9dfb;
+    --brand-accent: #eaa94e;
+
+    /* Sidebar acik zeminlidir; aktif satir yumusak mavi dolgu + mavi metindir */
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #6b7a90;
+    --sidebar-text-strong: #2d3748;
+    --sidebar-active-bg: #eef2fe;
+    --sidebar-active-text: #4a6cf7;
+    --sidebar-hover-bg: #f5f6f9;
+
+    --success: #2fa373;
+    --success-bg: #e8f7ef;
+    --info: #4a6cf7;
+    --info-bg: #eef2fe;
+    --warning: #c08a3e;
+    --warning-bg: #fdf3e3;
+    --danger: #d9636b;
+    --danger-bg: #fdeeef;
+    --muted-bg: #f5f6f9;
+
+    --sidebar-width: 268px;
+    --sidebar-width-collapsed: 84px;
+    --navbar-height: 68px;
+    --body-bg: #f7f8fa;
+    --card-bg: #ffffff;
+    --text-primary: #2d3748;
+    --text-muted: #8a94a6;
+    --border-color: #eef0f4;
+
+    /* Ikon rozetleri: pastel tint zemin + ayni ailenin doygun tonu */
+    --tint-blue: #eaf3fe;
+    --tone-blue: #5b9df5;
+    --tint-green: #e8f7ef;
+    --tone-green: #3ec48f;
+    --tint-teal: #e6f6f6;
+    --tone-teal: #45bdbd;
+    --tint-purple: #f1eefe;
+    --tone-purple: #9b8afd;
+    --tint-amber: #fdf3e3;
+    --tone-amber: #eaa94e;
+    --tint-red: #fdeeef;
+    --tone-red: #ef7f88;
+    --tint-pink: #fdeef4;
+    --tone-pink: #ef7fa8;
+    --tint-slate: #f2f4f7;
+    --tone-slate: #8a94a6;
+
+    /* Avatarlar tek bir acik mavi tondadir (satira gore renk dondurulmez) */
+    --avatar-bg: #5b9df5;
+
+    /* Bootstrap'in canli varsayilanlarini paletle hizalar (link, focus, .bg-*) */
+    --bs-primary: #5b7cfa;
+    --bs-primary-rgb: 91, 124, 250;
+    --bs-link-color: #5b7cfa;
+    --bs-link-color-rgb: 91, 124, 250;
+    --bs-link-hover-color: #3f5fe0;
+    --bs-link-hover-color-rgb: 63, 95, 224;
+    --bs-focus-ring-color: rgba(91, 124, 250, 0.2);
+    --bs-success: #2fa373;
+    --bs-success-rgb: 47, 163, 115;
+    --bs-danger: #d9636b;
+    --bs-danger-rgb: 217, 99, 107;
+    --bs-warning: #eaa94e;
+    --bs-warning-rgb: 234, 169, 78;
+    --bs-info: #6b8afd;
+    --bs-info-rgb: 107, 138, 253;
+}
+
+[data-theme="dark"] {
+    --body-bg: #14171f;
+    --card-bg: #1c2029;
+    --text-primary: #e5e8ee;
+    --text-muted: #98a2b3;
+    --border-color: #2a2f3a;
+    --muted-bg: #232833;
+
+    --sidebar-bg: #1c2029;
+    --sidebar-text: #98a2b3;
+    --sidebar-text-strong: #e5e8ee;
+    --sidebar-active-bg: #26314d;
+    --sidebar-active-text: #8fa8ff;
+    --sidebar-hover-bg: #232833;
+
+    --success: #4fc08d;
+    --success-bg: #162d24;
+    --info: #8fa8ff;
+    --info-bg: #1e2740;
+    --warning: #e0a75c;
+    --warning-bg: #2e2515;
+    --danger: #e08088;
+    --danger-bg: #2f1d1f;
+
+    --tint-blue: #17293f;
+    --tone-blue: #7ab5f8;
+    --tint-green: #162d24;
+    --tone-green: #4fc08d;
+    --tint-teal: #142c2c;
+    --tone-teal: #52c4c4;
+    --tint-purple: #262240;
+    --tone-purple: #a898ff;
+    --tint-amber: #2e2515;
+    --tone-amber: #e0a75c;
+    --tint-red: #2f1d1f;
+    --tone-red: #e08088;
+    --tint-pink: #2f1e26;
+    --tone-pink: #ef8fb2;
+    --tint-slate: #232833;
+    --tone-slate: #98a2b3;
+
+    --bs-link-color: #8fa8ff;
+    --bs-link-color-rgb: 143, 168, 255;
+    --bs-link-hover-color: #b3c4ff;
+    --bs-link-hover-color-rgb: 179, 196, 255;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--body-bg);
+    color: var(--text-primary);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+a {
+    color: var(--brand-primary);
+}
+
+/* ---------- Layout ---------- */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    color: var(--sidebar-text);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.25s ease;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.sidebar-brand {
+    padding: 1.5rem 1.35rem 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sidebar-brand .brand-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 0.75rem;
+    background-color: var(--tint-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    color: var(--tone-blue);
+    flex-shrink: 0;
+}
+
+.sidebar-brand .brand-title {
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: var(--sidebar-text-strong);
+    line-height: 1.15;
+    letter-spacing: 0.02em;
+}
+
+.sidebar-brand .brand-subtitle {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 0.25rem 0.9rem 1rem;
+}
+
+.sidebar .nav-link {
+    color: var(--sidebar-text);
+    padding: 0.65rem 0.9rem;
+    margin-bottom: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 0.7rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar .nav-link i {
+    font-size: 1.05rem;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar .nav-link:hover {
+    background-color: var(--sidebar-hover-bg);
+    color: var(--sidebar-text-strong);
+}
+
+.sidebar .nav-link.active {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    font-weight: 600;
+}
+
+.sidebar .nav-link .badge {
+    margin-left: auto;
+}
+
+.sidebar .nav-section-title {
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 1.1rem 0.9rem 0.4rem;
+}
+
+.sidebar-user {
+    margin: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.85rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.sidebar-user .avatar-circle {
+    background-color: var(--brand-primary);
+    color: #fff;
+}
+
+.sidebar-user .user-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--sidebar-text-strong);
+    margin-bottom: 0.1rem;
+}
+
+.sidebar-user .user-role {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.sidebar-user .user-role .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: var(--tone-green);
+    display: inline-block;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.topbar {
+    height: var(--navbar-height);
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    gap: 1rem;
+}
+
+.topbar-search {
+    flex: 1;
+    max-width: 380px;
+}
+
+.topbar-search .input-group-text {
+    background-color: var(--muted-bg);
+    border: 1px solid var(--border-color);
+    border-right: none;
+    color: var(--text-muted);
+    border-radius: 2rem 0 0 2rem;
+    padding-left: 1rem;
+}
+
+.topbar-search input {
+    background-color: var(--muted-bg);
+    border: 1px solid var(--border-color);
+    border-left: none;
+    border-radius: 0 2rem 2rem 0;
+}
+
+.topbar-search input:focus {
+    box-shadow: none;
+    border-color: var(--border-color);
+    background-color: var(--card-bg);
+}
+
+.page-content {
+    padding: 1.75rem;
+}
+
+/* Cok genis (4K ve uzeri) ekranlarda icerigi okunabilir genislikte tutar */
+@media (min-width: 1921px) {
+    .page-content {
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+}
+
+/* Basit yukleniyor gostergesi (arama vb. AJAX istekleri icin) */
+.search-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.spinner-dot {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--brand-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ---------- Kartlar ---------- */
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(45, 55, 72, 0.04), 0 6px 20px rgba(45, 55, 72, 0.04);
+}
+
+.card-header {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    border-radius: 1rem 1rem 0 0 !important;
+}
+
+.card,
+.card-body {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+/* ---------- Istatistik kartlari (hero) ----------
+   Govde dikey akar: ust satir (ikon + deger/etiket), altta tam genislikte sparkline.
+   Sparkline'daki margin-top:auto sayesinde etiket 1 veya 2 satira sarsa da grafik tum
+   kartlarda ayni hizada kalir; kart yukseklikleri .h-100 ile esitlenir. */
+.hero-stat-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(45, 55, 72, 0.04), 0 6px 20px rgba(45, 55, 72, 0.04);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hero-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(45, 55, 72, 0.06), 0 12px 28px rgba(45, 55, 72, 0.08);
+}
+
+.hero-stat-card .card-body {
+    padding: 1.1rem 1.1rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.hero-stat-card .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+
+.hero-stat-card .stat-value {
+    font-size: 1 rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+}
+
+.hero-stat-card .stat-label {
+    font-size: 10px;
+    line-height: 1.3;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.hero-stat-card .stat-spark {
+    display: none;
+    width: 100%;
+    height: 24px;
+    margin-top: auto;
+    padding-top: 0.75rem;
+}
+
+/* Sparkline tonlari - stroke="currentColor" ile calisir, koyu temada da uyumlanir */
+.spark-blue { color: var(--tone-blue); }
+.spark-green { color: var(--tone-green); }
+.spark-teal { color: var(--tone-teal); }
+.spark-purple { color: var(--tone-purple); }
+.spark-amber { color: var(--tone-amber); }
+.spark-pink { color: var(--tone-pink); }
+
+/* Ikon rozetleri: pastel tint zemin + ayni ailenin doygun tonu */
+.icon-bg-purple { background-color: var(--tint-purple); color: var(--tone-purple); }
+.icon-bg-blue { background-color: var(--tint-blue); color: var(--tone-blue); }
+.icon-bg-green { background-color: var(--tint-green); color: var(--tone-green); }
+.icon-bg-orange { background-color: var(--tint-amber); color: var(--tone-amber); }
+.icon-bg-red { background-color: var(--tint-red); color: var(--tone-red); }
+.icon-bg-teal { background-color: var(--tint-teal); color: var(--tone-teal); }
+.icon-bg-pink { background-color: var(--tint-pink); color: var(--tone-pink); }
+.icon-bg-slate { background-color: var(--tint-slate); color: var(--tone-slate); }
+
+/* ---------- Sifre kurallari kutusu ----------
+   Django'nun sifre dogrulayici yardim metni <ul> olarak gelir; sade bir
+   bilgilendirme kutusuna donusturulur. */
+.password-rules {
+    background-color: var(--muted-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.85rem 1rem;
+}
+
+.password-rules-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+}
+
+.password-rules ul {
+    margin: 0;
+    padding-left: 1.1rem;
+}
+
+.password-rules li {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* ---------- Donut lejant ---------- */
+.legend-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.legend-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0;
+    font-size: 0.86rem;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.legend-list li:last-child {
+    border-bottom: none;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.55rem;
+}
+
+.legend-summary-box {
+    background-color: var(--muted-bg);
+    border-radius: 0.85rem;
+    padding: 1rem 1.1rem;
+    margin-top: 0.75rem;
+}
+
+.legend-summary-box .summary-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.legend-summary-box .summary-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+/* ---------- Tablolar ---------- */
+.table-modern {
+    color: var(--text-primary);
+}
+
+.table-modern thead {
+    background-color: var(--muted-bg);
+}
+
+.table-modern thead th {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    border-bottom: none;
+    font-weight: 700;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+}
+
+.table-modern tbody tr {
+    border-color: var(--border-color);
+}
+
+.table-modern tbody tr:hover {
+    background-color: var(--muted-bg);
+}
+
+[data-theme="dark"] .list-group-item {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table-modern td {
+    vertical-align: middle;
+}
+
+.avatar-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: var(--avatar-bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* ---------- Pill Badge ---------- */
+.pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.32em 0.85em;
+    border-radius: 2rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+.pill-success { background-color: var(--success-bg); color: var(--success); }
+.pill-info { background-color: var(--info-bg); color: var(--info); }
+.pill-warning { background-color: var(--warning-bg); color: var(--warning); }
+.pill-danger { background-color: var(--danger-bg); color: var(--danger); }
+.pill-muted { background-color: var(--muted-bg); color: var(--text-muted); }
+
+/* ---------- Cihaz Timeline ---------- */
+.device-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+.device-timeline-item {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+    padding-bottom: 1.75rem;
+}
+
+.device-timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.device-timeline-item::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 36px;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--border-color);
+}
+
+.device-timeline-item:last-child::before {
+    display: none;
+}
+
+.device-timeline-dot {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.95rem;
+    z-index: 1;
+}
+
+.device-timeline-content {
+    padding-top: 0.15rem;
+}
+
+/* ---------- Sayfalama ---------- */
+.pagination .page-link {
+    border: none;
+    border-radius: 50% !important;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 3px;
+    color: var(--text-muted);
+    background-color: var(--card-bg);
+    box-shadow: 0 1px 3px rgba(45, 55, 72, 0.06);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--brand-primary);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(91, 124, 250, 0.3);
+}
+
+.pagination .page-item.disabled .page-link {
+    opacity: 0.4;
+    box-shadow: none;
+}
+
+/* ---------- Butonlar ---------- */
+.btn-primary {
+    --bs-btn-bg: var(--brand-primary);
+    --bs-btn-border-color: var(--brand-primary);
+    --bs-btn-hover-bg: var(--brand-primary-dark);
+    --bs-btn-hover-border-color: var(--brand-primary-dark);
+    --bs-btn-active-bg: var(--brand-primary-dark);
+    --bs-btn-active-border-color: var(--brand-primary-dark);
+    --bs-btn-disabled-bg: var(--brand-primary);
+    --bs-btn-disabled-border-color: var(--brand-primary);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--brand-primary);
+    --bs-btn-border-color: var(--brand-primary);
+    --bs-btn-hover-bg: var(--brand-primary);
+    --bs-btn-hover-border-color: var(--brand-primary);
+    --bs-btn-active-bg: var(--brand-primary-dark);
+    --bs-btn-active-border-color: var(--brand-primary-dark);
+    --bs-btn-disabled-color: var(--brand-primary);
+    --bs-btn-disabled-border-color: var(--brand-primary);
+}
+
+/* Uyari kutulari da yumusak palete cekilir */
+.alert-success {
+    --bs-alert-bg: var(--success-bg);
+    --bs-alert-color: var(--success);
+    --bs-alert-border-color: rgba(47, 163, 115, 0.2);
+}
+
+.alert-info {
+    --bs-alert-bg: var(--info-bg);
+    --bs-alert-color: var(--info);
+    --bs-alert-border-color: rgba(91, 124, 250, 0.2);
+}
+
+.alert-warning {
+    --bs-alert-bg: var(--warning-bg);
+    --bs-alert-color: var(--warning);
+    --bs-alert-border-color: rgba(234, 169, 78, 0.25);
+}
+
+.alert-danger {
+    --bs-alert-bg: var(--danger-bg);
+    --bs-alert-color: var(--danger);
+    --bs-alert-border-color: rgba(217, 99, 107, 0.2);
+}
+
+/* ---------- Giris sayfasi ---------- */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+    padding: 1.5rem;
+}
+
+.auth-card {
+    max-width: 420px;
+    width: 100%;
+    border-radius: 1.1rem;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(45, 55, 72, 0.2);
+}
+
+.auth-card .auth-header {
+    background-color: var(--brand-primary);
+    color: #fff;
+    padding: 2rem 2rem 1.5rem;
+    text-align: center;
+}
+
+.auth-card .auth-body {
+    padding: 2rem;
+    background-color: var(--card-bg);
+}
+
+/* ---------- Yardimci siniflar ---------- */
+.text-brand {
+    color: var(--brand-primary);
+}
+
+.bg-brand {
+    background-color: var(--brand-primary) !important;
+}
+
+.badge-status {
+    font-size: 0.78rem;
+    padding: 0.4em 0.7em;
+}
+
+.section-title {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ---------- Sidebar daraltma (masaustu) ---------- */
+.app-wrapper.sidebar-collapsed .sidebar {
+    width: var(--sidebar-width-collapsed);
+    min-width: var(--sidebar-width-collapsed);
+}
+
+.app-wrapper.sidebar-collapsed .sidebar-brand .brand-title,
+.app-wrapper.sidebar-collapsed .sidebar-brand .brand-subtitle,
+.app-wrapper.sidebar-collapsed .nav-link .nav-label,
+.app-wrapper.sidebar-collapsed .nav-section-title,
+.app-wrapper.sidebar-collapsed .sidebar-user .user-name,
+.app-wrapper.sidebar-collapsed .sidebar-user .user-role,
+.app-wrapper.sidebar-collapsed .nav-link .badge {
+    display: none !important;
+}
+
+.app-wrapper.sidebar-collapsed .sidebar-brand {
+    justify-content: center;
+    padding: 1.5rem 0.5rem;
+}
+
+.app-wrapper.sidebar-collapsed .nav-link {
+    justify-content: center;
+    padding: 0.7rem 0.5rem;
+}
+
+.app-wrapper.sidebar-collapsed .sidebar-user {
+    justify-content: center;
+}
+
+/* ---------- Global arama sonuc kutusu ---------- */
+#globalSearchResults {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 1050;
+    background-color: var(--card-bg);
+}
+
+/* ---------- Hafif giris animasyonu ---------- */
+.fade-in-content {
+    animation: fadeInUp 0.35s ease both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ---------- Dark mode: form ve dropdown uyumu ---------- */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .input-group-text {
+    background-color: var(--muted-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--muted-bg);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+    background-color: var(--muted-bg);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-light {
+    background-color: var(--muted-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table-borderless th,
+[data-theme="dark"] .table-borderless td {
+    color: var(--text-primary);
+}
+
+@media (max-width: 991.98px) {
+    .sidebar {
+        position: fixed;
+        z-index: 1030;
+        margin-left: calc(-1 * var(--sidebar-width));
+    }
+
+    .sidebar.show {
+        margin-left: 0;
+    }
+
+    .page-content {
+        padding: 1rem;
+    }
+
+    .topbar-search {
+        display: none;
+    }
+}

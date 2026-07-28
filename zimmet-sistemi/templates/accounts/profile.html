@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Profilim{% endblock %}
+{% block page_title %}Profilim{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card text-center">
+            <div class="card-body py-4">
+                {% if employee and employee.profile_photo %}
+                <img src="{{ employee.profile_photo.url }}" class="rounded-circle mb-3" width="110" height="110" style="object-fit: cover;" alt="{{ employee.full_name }}">
+                {% else %}
+                <div class="avatar-circle mx-auto mb-3" style="width: 110px; height: 110px; font-size: 2.5rem;">
+                    {{ request.user.get_full_name|default:request.user.username|first|upper }}
+                </div>
+                {% endif %}
+                <h5 class="mb-0">{{ request.user.get_full_name|default:request.user.username }}</h5>
+                <p class="text-muted mb-1">{{ request.user.email }}</p>
+                <span class="pill-badge pill-{% if request.user.is_admin_role %}info{% else %}muted{% endif %}">
+                    {{ request.user.get_role_display }}
+                </span>
+                {% if employee %}
+                <hr>
+                <p class="mb-0 small text-muted"><i class="bi bi-building me-1"></i>{{ employee.company.name }}</p>
+                {% endif %}
+            </div>
+            {% if photo_form %}
+            <div class="card-footer bg-white">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ photo_form.profile_photo }}
+                    <button type="submit" name="update_photo" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                        <i class="bi bi-camera me-1"></i> Fotografi Guncelle
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-key me-1"></i> Sifremi Degistir
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-person-lines-fill me-2"></i>Hesap Bilgileri</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ad</label>
+                            {{ profile_form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Soyad</label>
+                            {{ profile_form.last_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">E-posta</label>
+                            {{ profile_form.email }}
+                            {% for error in profile_form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Telefon</label>
+                            {{ profile_form.phone_number }}
+                        </div>
+                    </div>
+                    <button type="submit" name="update_profile" class="btn btn-primary mt-4">
+                        <i class="bi bi-check-lg me-1"></i> Bilgileri Kaydet
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

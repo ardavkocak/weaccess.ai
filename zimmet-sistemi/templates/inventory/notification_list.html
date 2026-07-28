@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Bildirimler{% endblock %}
+{% block page_title %}Bildirimler{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-bell me-2"></i>Bildirimlerim</span>
+                {% if unread_notification_count %}
+                <form method="post" action="{% url 'inventory:notification-mark-all-read' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Tumunu Okundu Isaretle</button>
+                </form>
+                {% endif %}
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for notification in notifications %}
+                <li class="list-group-item d-flex justify-content-between align-items-start {% if not notification.is_read %}bg-light{% endif %}">
+                    <div>
+                        <div class="fw-semibold">
+                            {% if not notification.is_read %}<span class="legend-dot" style="background-color: var(--brand-primary);"></span>{% endif %}
+                            {{ notification.title }}
+                        </div>
+                        <div class="small text-muted">{{ notification.message }}</div>
+                        <div class="small text-muted">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if notification.link %}
+                        <a href="{{ notification.link }}" class="btn btn-sm btn-outline-secondary">Goruntule</a>
+                        {% endif %}
+                        {% if not notification.is_read %}
+                        <form method="post" action="{% url 'inventory:notification-mark-read' notification.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Okundu Isaretle</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-center text-muted py-4">Henuz bildiriminiz yok.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

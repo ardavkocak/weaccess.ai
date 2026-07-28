@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Iade Al{% endblock %}
+{% block page_title %}Cihaz Iadesi{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-warning">
+            <div class="card-header bg-warning"><i class="bi bi-box-arrow-in-left me-2"></i>Cihaz Iadesini Onayla</div>
+            <div class="card-body">
+                <p><strong>{{ assignment.device }}</strong> cihazinin <strong>{{ assignment.employee }}</strong> adli calisandan iadesini almak istediginizden emin misiniz?</p>
+                <p class="text-muted small">Iade onaylandiginda iade teslim tutanagi (PDF) olusturulur. Cihazin yeni durumu asagida sectiginiz iade durumuna gore belirlenir.</p>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.return_condition.label }}</label>
+                        <div class="d-flex flex-column gap-1">
+                            {% for radio in form.return_condition %}
+                            <div class="form-check">
+                                {{ radio.tag }}
+                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.return_condition.errors %}
+                        <div class="text-danger small mt-1">{{ form.return_condition.errors|join:" " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.damage_description.id_for_label }}">{{ form.damage_description.label }}</label>
+                        {{ form.damage_description }}
+                        {% if form.damage_description.errors %}
+                        <div class="text-danger small mt-1">{{ form.damage_description.errors|join:" " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.return_notes.id_for_label }}">{{ form.return_notes.label }} (opsiyonel)</label>
+                        {{ form.return_notes }}
+                        {% if form.return_notes.errors %}
+                        <div class="text-danger small mt-1">{{ form.return_notes.errors|join:" " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning"><i class="bi bi-check-lg me-1"></i> Iadeyi Onayla</button>
+                        <a href="{% url 'inventory:assignment-list' %}" class="btn btn-outline-secondary">Vazgec</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Sirketler{% endblock %}
+{% block page_title %}Sirketler{% endblock %}
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-10">
+                <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Sirket adi ara...">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> Ara</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'inventory:company-create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Yeni Sirket</a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-modern mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Sirket Adi</th>
+                    <th class="text-center">Calisan Sayisi</th>
+                    <th>Olusturulma Tarihi</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for company in companies %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="stat-icon icon-bg-purple"><i class="bi bi-building"></i></span>
+                            <span class="fw-semibold">{{ company.name }}</span>
+                        </div>
+                    </td>
+                    <td class="text-center">{{ company.employee_count }}</td>
+                    <td>{{ company.created_at|date:"d.m.Y" }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'inventory:company-update' company.pk %}" class="btn btn-sm btn-outline-secondary" title="Duzenle"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'inventory:company-delete' company.pk %}" class="btn btn-sm btn-outline-danger" title="Sil"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Kayitli sirket bulunamadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj %}
+    <div class="card-footer bg-white text-muted small">Toplam {{ page_obj.paginator.count }} sirket</div>
+    {% endif %}
+</div>
+{% include "partials/pagination.html" %}
+{% endblock %}

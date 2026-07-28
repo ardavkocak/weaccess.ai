@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load inventory_extras %}
+{% block title %}Zimmetler{% endblock %}
+{% block page_title %}Zimmetler{% endblock %}
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-6">{{ search_form.q }}</div>
+            <div class="col-md-4">{{ search_form.status }}</div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> Ara</button>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">{{ search_form.date_from.label }}</label>
+                {{ search_form.date_from }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">{{ search_form.date_to.label }}</label>
+                {{ search_form.date_to }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">{{ search_form.return_date_from.label }}</label>
+                {{ search_form.return_date_from }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">{{ search_form.return_date_to.label }}</label>
+                {{ search_form.return_date_to }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'inventory:assignment-create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Yeni Zimmet</a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-modern mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Cihaz</th>
+                    <th>Calisan</th>
+                    <th>Teslim Tarihi</th>
+                    <th>Iade Tarihi</th>
+                    <th>Durum</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in assignments %}
+                <tr class="{% if assignment.is_overdue %}table-warning{% endif %}">
+                    <td><a href="{{ assignment.get_absolute_url }}" class="text-decoration-none fw-semibold">{{ assignment.device }}</a></td>
+                    <td>{{ assignment.employee }}</td>
+                    <td>{{ assignment.assigned_date|date:"d.m.Y" }}</td>
+                    <td>{% if assignment.returned %}{{ assignment.returned_date|date:"d.m.Y" }}{% else %}-{% endif %}</td>
+                    <td>
+                        {% if assignment.returned %}
+                        <span class="pill-badge pill-info">Iade Edildi</span>
+                        {% elif assignment.is_overdue %}
+                        <span class="pill-badge pill-danger">Gecikmis</span>
+                        {% else %}
+                        <span class="pill-badge pill-success">Aktif</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'inventory:assignment-delivery-pdf' assignment.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" title="Teslim Tutanagi"><i class="bi bi-file-earmark-pdf"></i></a>
+                        {% if assignment.returned %}
+                        <a href="{% url 'inventory:assignment-return-pdf' assignment.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" title="Iade Tutanagi"><i class="bi bi-file-earmark-arrow-up"></i></a>
+                        {% else %}
+                        <a href="{% url 'inventory:assignment-return' assignment.pk %}" class="btn btn-sm btn-outline-warning">Iade Al</a>
+                        {% endif %}
+                        <a href="{% url 'inventory:assignment-delete' assignment.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">Kayitli zimmet bulunamadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj %}
+    <div class="card-footer bg-white text-muted small">Toplam {{ page_obj.paginator.count }} kayit</div>
+    {% endif %}
+</div>
+{% include "partials/pagination.html" %}
+{% endblock %}

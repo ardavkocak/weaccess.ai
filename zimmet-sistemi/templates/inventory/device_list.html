@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Cihazlar{% endblock %}
+{% block page_title %}Cihazlar{% endblock %}
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-10">{{ search_form.q }}</div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> Ara</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'inventory:device-export' %}?{{ request.GET.urlencode }}" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel me-1"></i> Excel'e Aktar</a>
+        <a href="{% url 'inventory:device-import' %}" class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i> Excel'den Ice Aktar</a>
+        <a href="{% url 'inventory:device-create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Yeni Cihaz</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-modern mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Cihaz</th>
+                    <th class="text-center">Toplam Adet</th>
+                    <th>Durum</th>
+                    <th class="text-end">Islemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in devices %}
+                <tr>
+                    <td>
+                        <a href="{{ device.get_absolute_url }}" class="text-decoration-none d-flex align-items-center gap-2">
+                            <span class="stat-icon icon-bg-blue"><i class="bi bi-box-seam"></i></span>
+                            <span class="fw-semibold">{{ device.name }}</span>
+                        </a>
+                    </td>
+                    <td class="text-center fw-semibold">{{ device.total_quantity }}</td>
+                    <td>
+                        {% for label, badge in device.stock_badges %}
+                        <span class="pill-badge pill-{{ badge }}">{{ label }}</span>
+                        {% endfor %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'inventory:device-update' device.pk %}" class="btn btn-sm btn-outline-secondary" title="Duzenle"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'inventory:device-delete' device.pk %}" class="btn btn-sm btn-outline-danger" title="Sil"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Kayitli cihaz bulunamadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj %}
+    <div class="card-footer bg-white text-muted small">Toplam {{ page_obj.paginator.count }} cihaz turu</div>
+    {% endif %}
+</div>
+
+{% include "partials/pagination.html" %}
+{% endblock %}

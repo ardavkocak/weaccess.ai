@@ -1,0 +1,12 @@
+Django>=5.0,<5.2
+psycopg2-binary>=2.9,<3.0
+django-environ>=0.11,<0.12
+Pillow>=10.3,<11.0
+Faker>=24.0,<25.0
+python-dateutil>=2.9,<3.0
+openpyxl>=3.1,<4.0
+reportlab>=4.1,<5.0
+
+# Uygulama sunucusu ve statik dosya sunumu (Docker/production icin)
+gunicorn>=22.0,<23.0
+whitenoise>=6.6,<7.0

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load inventory_extras %}
+{% block title %}Cihazlarim{% endblock %}
+{% block page_title %}Cihazlarim{% endblock %}
+{% block content %}
+
+{% if not employee %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Hesabiniza baglanmis bir calisan kaydi bulunamadi. Lutfen sistem yoneticinizle iletisime gecin.
+</div>
+{% else %}
+
+<div class="card mb-4">
+    <div class="card-header"><i class="bi bi-laptop me-2"></i>Su Anda Zimmetli Cihazlarim</div>
+    <div class="table-responsive">
+        <table class="table table-modern mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Cihaz</th>
+                    <th>Teslim Tarihi</th>
+                    <th>Beklenen Iade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in active_assignments %}
+                <tr>
+                    <td class="fw-semibold">{{ assignment.device }}</td>
+                    <td>{{ assignment.assigned_date|date:"d.m.Y" }}</td>
+                    <td>{{ assignment.expected_return_date|date:"d.m.Y"|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center text-muted py-4">Su anda uzerinizde zimmetli cihaz bulunmuyor.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><i class="bi bi-clock-history me-2"></i>Zimmet Gecmisim</div>
+    <div class="table-responsive">
+        <table class="table table-modern mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Cihaz</th>
+                    <th>Teslim Tarihi</th>
+                    <th>Iade Tarihi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in history_assignments %}
+                <tr>
+                    <td>{{ assignment.device }}</td>
+                    <td>{{ assignment.assigned_date }}</td>
+                    <td>{{ assignment.returned_date }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center text-muted py-4">Gecmis zimmet kaydiniz bulunmuyor.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
