@@ -1,6 +1,6 @@
 [submodule "aylik-takip"]
 	path = aylik-takip
-	url = https://git.nevisoft.com.tr/nevisoft/work-hours-tracker.git
+	url = https://github.com/ardavkocak/aylik-takip.git
 [submodule "dokumantasyon-otomasyon"]
 	path = dokumantasyon-otomasyon
 	url = https://github.com/ardavkocak/Dokumantasyon-otomasyon.git
