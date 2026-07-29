@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Discord Ayarları{% endblock %}
+{% block page_title %}Discord Ayarları{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width: 640px;">
+    <div class="card-header">Discord Bağlantısı</div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Discord Sunucu (Guild) ID</label>
+                <input type="text" name="discord_guild_id" class="form-control" value="{{ settings.discord_guild_id }}">
+                <div class="form-text">İsteğe bağlı ama önerilir; girilirse kanal bu sunucu içinde aranır.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Görev Kanalı ID</label>
+                <input type="text" name="discord_duty_channel_id" class="form-control" value="{{ settings.discord_duty_channel_id }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Yemek Kanalı ID</label>
+                <input type="text" name="discord_meal_channel_id" class="form-control" value="{{ settings.discord_meal_channel_id }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Discord Bot Token</label>
+                <input type="text" name="discord_bot_token" class="form-control"
+                       placeholder="{% if token_is_set %}{{ settings.discord_bot_token }} (değiştirmek için yeni token girin){% else %}Token girilmemiş{% endif %}">
+                <div class="form-text">Boş bırakılırsa mevcut token değişmez.</div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Kaydet</button>
+            <a href="{% url 'office_bot:test_actions' %}" class="btn btn-outline-secondary btn-sm">Bağlantıyı Test Et</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

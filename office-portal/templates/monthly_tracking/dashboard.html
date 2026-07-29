@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Aylık Çalışma & İzin Takip{% endblock %}
+{% block page_title %}Aylık Çalışma & İzin Takip{% endblock %}
+{% block content %}
+
+<div class="card mb-3">
+    <div class="card-header">Çalışma Saati ve İzin Hesaplama</div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-4">
+                <label class="form-label">Çalışma Dosyası (Muafiyet Raporu — PDF/Word)</label>
+                <input type="file" name="calismaDosyasi" accept=".pdf,.doc,.docx" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">İzin Görseli (PNG/JPEG/WebP)</label>
+                <input type="file" name="izinGorseli" accept=".png,.jpg,.jpeg,.webp" class="form-control" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Yıl</label>
+                <input type="number" name="yil" class="form-control" value="{{ varsayilan_yil }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Ay</label>
+                <input type="number" name="ay" min="1" max="12" class="form-control" value="{{ varsayilan_ay }}">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-calculator"></i> Hesapla</button>
+            </div>
+        </form>
+        <p class="text-muted small mt-3 mb-0">
+            Çalışma dosyası Muafiyet Raporu (PDF) formatında beklenir. İzin görseli ilk okunduğunda OCR birkaç saniye sürebilir.
+        </p>
+    </div>
+</div>
+
+{% if hata %}
+<div class="alert alert-danger d-flex align-items-start gap-2">
+    <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+    <div>{{ hata }}</div>
+</div>
+{% endif %}
+
+{% if ozet %}
+
+{% if ozet.resmi_tatil_uyarisi %}
+<div class="alert alert-warning d-flex align-items-start gap-2">
+    <i class="bi bi-info-circle-fill mt-1"></i>
+    <div>{{ ozet.resmi_tatil_uyarisi }}</div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg">
+        <div class="card hero-stat-card h-100"><div class="card-body">
+            <div class="stat-value">{{ detay.donem }}</div>
+            <div class="stat-label">Dönem</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg">
+        <div class="card hero-stat-card h-100"><div class="card-body">
+            <div class="stat-value">{{ detay.personel_sayisi }}</div>
+            <div class="stat-label">Personel Sayısı</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg">
+        <div class="card hero-stat-card h-100"><div class="card-body">
+            <div class="stat-value">{{ ozet.ayin_is_gunu }}</div>
+            <div class="stat-label">Ayın İş Günü</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg">
+        <div class="card hero-stat-card h-100"><div class="card-body">
+            <div class="stat-value">{{ ozet.resmi_gun }}</div>
+            <div class="stat-label">Resmi Tatil</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg">
+        <div class="card hero-stat-card h-100"><div class="card-body">
+            <div class="stat-value">{{ detay.gunluk_saat }} sa</div>
+            <div class="stat-label">Günlük Çalışma Saati</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Personel Bazlı Özet</div>
+    <div class="table-responsive">
+        <table class="table table-modern mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 2.5rem;"></th>
+                    <th>Personel</th>
+                    <th>Çalışılan Saat</th>
+                    <th>İzin</th>
+                    <th>Resmi İzin</th>
+                    <th>Çalışması Gereken</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in ozet.personeller %}
+                <tr class="mt-row-toggle" data-bs-toggle="collapse" data-bs-target="#personelDetay{{ forloop.counter }}" style="cursor: pointer;">
+                    <td><i class="bi bi-chevron-down text-muted"></i></td>
+                    <td>{{ p.isim }}</td>
+                    <td>{{ p.calisma_saat }} sa</td>
+                    <td>{{ p.izin_gun }} gün ({{ p.izin_saat }} sa)</td>
+                    <td>{{ p.resmi_gun }} gün ({{ p.resmi_saat }} sa)</td>
+                    <td>{{ p.gerekli_saat }} sa</td>
+                    <td>
+                        <span class="pill-badge {% if p.durum == 'tam' %}pill-success{% elif p.durum == 'fazla' %}pill-info{% else %}pill-danger{% endif %}">
+                            {% if p.durum == 'tam' %}Tam{% elif p.durum == 'fazla' %}Fazla{% else %}Eksik{% endif %} ({{ p.fark }} sa)
+                        </span>
+                    </td>
+                </tr>
+                <tr class="collapse" id="personelDetay{{ forloop.counter }}">
+                    <td colspan="7" class="bg-light-subtle">
+                        <div class="p-3">
+                            <div class="row g-3 mb-2">
+                                <div class="col-md-4">
+                                    <span class="text-muted small">Bölgede Bulunma Süresi:</span>
+                                    <strong>{{ p.bolgede_saat|default:"—" }} sa</strong>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="text-muted small">Muafiyet Saati:</span>
+                                    <strong>{{ p.muafiyet_saat|default:"—" }} sa</strong>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="text-muted small">Çalışması Gereken Gün:</span>
+                                    <strong>{{ p.calisma_gerekli_gun }} gün</strong>
+                                </div>
+                            </div>
+                            <div class="fw-semibold small mb-1">İzin Kayıtları ({{ p.izin_kayitlari|length }})</div>
+                            {% if p.izin_kayitlari %}
+                            <ul class="list-group list-group-flush">
+                                {% for iz in p.izin_kayitlari %}
+                                <li class="list-group-item small d-flex justify-content-between flex-wrap gap-2">
+                                    <span>{{ iz.baslangic }} – {{ iz.bitis }} <span class="text-muted">({{ iz.tip }})</span></span>
+                                    <span class="pill-badge pill-muted">
+                                        {% if iz.hesap_tipi == "yarim_gun" %}Yarım gün{% elif iz.hesap_tipi == "saatlik" %}Saatlik{% else %}Tam gün{% endif %}
+                                        — {{ iz.is_gunu }} gün
+                                    </span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-muted small mb-0">Bu personel için izin kaydı bulunamadı.</p>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if ozet.eslesmeyen_izinler %}
+<div class="alert alert-warning mt-3">
+    <strong>Eşleşmeyen / belirsiz izin kayıtları</strong>
+    <p class="small mb-2">
+        Bu kayıtlar, isim görselden tam veya güvenli biçimde eşleştirilemediği için HİÇBİR personelin
+        hesabına dahil EDİLMEDİ (yanlış kişiye yazılmasındansa burada gösterilir). Gerekirse elle kontrol edin.
+    </p>
+    <ul class="mb-0">{% for iz in ozet.eslesmeyen_izinler %}<li>{{ iz.isim }} ({{ iz.baslangic }} – {{ iz.bitis }}, {{ iz.tip }})</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

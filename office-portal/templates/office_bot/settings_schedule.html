@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Bildirim Saatleri{% endblock %}
+{% block page_title %}Bildirim Saatleri{% endblock %}
+{% block content %}
+
+<div class="card">
+    <div class="card-header">Zamanlanmış Mesajlar</div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% for message in scheduled_messages %}
+            <div class="row g-3 align-items-start border-bottom pb-3 mb-3">
+                <div class="col-md-3">
+                    <div class="fw-semibold">{{ message.name }}</div>
+                    <span class="pill-badge {% if message.kind == 'duty' %}pill-info{% else %}pill-muted{% endif %}">
+                        {% if message.kind == 'duty' %}Görev Bildirimi{% else %}Hatırlatma{% endif %}
+                    </span>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Saat</label>
+                    <input type="time" name="time_{{ message.id }}" class="form-control form-control-sm" value="{{ message.send_time }}">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small">Etkin</label><br>
+                    <input type="checkbox" class="form-check-input" name="enabled_{{ message.id }}" {% if message.is_enabled %}checked{% endif %}>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small">Mesaj Metni</label>
+                    <textarea name="template_{{ message.id }}" class="form-control form-control-sm" rows="2">{{ message.message_template }}</textarea>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted">Henüz zamanlanmış mesaj yok.</p>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Kaydet</button>
+        </form>
+    </div>
+</div>
+<p class="text-muted small mt-3">
+    Görev bildirimi şablonu Discord'daki onay sorusudur; {name}, {first} veya {mention}
+    değişkenlerinden birini içermelidir. Diğer değişkenler: {emoji}, {duty}, {company}, {date}, {gun}, {gunUn}.
+</p>
+
+{% endblock %}

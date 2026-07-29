@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}{{ device.name }}{% endblock %}
+{% block page_title %}Cihaz Detayi{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card text-center">
+            <div class="card-body py-4">
+                <i class="bi bi-box-seam display-3 text-brand mb-3 d-block"></i>
+                <h5 class="mb-2">{{ device.name }}</h5>
+                <div class="d-flex flex-wrap justify-content-center gap-1">
+                    {% for label, badge in device.stock_badges %}
+                    <span class="pill-badge pill-{{ badge }}">{{ label }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer bg-white d-flex gap-2">
+                <a href="{% url 'inventory:device-update' device.pk %}" class="btn btn-outline-primary btn-sm flex-fill"><i class="bi bi-pencil"></i> Duzenle</a>
+                <a href="{% url 'inventory:device-delete' device.pk %}" class="btn btn-outline-danger btn-sm flex-fill"><i class="bi bi-trash"></i> Sil</a>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">Stok Durumu</div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0 small">
+                    <tr><th class="text-muted">Toplam Adet</th><td class="fw-semibold">{{ device.total_quantity }}</td></tr>
+                    <tr><th class="text-muted">Zimmette</th><td class="fw-semibold">{{ device.assigned_count }}</td></tr>
+                    <tr><th class="text-muted">Bosta</th><td class="fw-semibold">{{ device.available_count }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        {% if device.available_count %}
+        <a href="{% url 'inventory:assignment-create' %}?device={{ device.pk }}" class="btn btn-success mb-3"><i class="bi bi-person-plus"></i> Bu Cihazi Zimmetle</a>
+        {% endif %}
+
+        <div class="card mb-3">
+            <div class="card-header">Zimmetteki Adetler ({{ device.assigned_count }})</div>
+            <div class="table-responsive">
+                <table class="table table-modern mb-0 align-middle">
+                    <thead><tr><th>Calisan</th><th>Sirket</th><th>Teslim Tarihi</th><th class="text-end">Islem</th></tr></thead>
+                    <tbody>
+                        {% for assignment in active_assignments %}
+                        <tr>
+                            <td><a href="{{ assignment.employee.get_absolute_url }}" class="text-decoration-none">{{ assignment.employee }}</a></td>
+                            <td>{{ assignment.employee.company.name }}</td>
+                            <td>{{ assignment.assigned_date|date:"d.m.Y" }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'inventory:assignment-return' assignment.pk %}" class="btn btn-sm btn-outline-warning">Iade Al</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">Bu cihazdan zimmette adet yok.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Zimmet Gecmisi</div>
+            <div class="table-responsive">
+                <table class="table table-modern mb-0">
+                    <thead><tr><th>Calisan</th><th>Teslim</th><th>Iade</th></tr></thead>
+                    <tbody>
+                        {% for assignment in assignment_history %}
+                        <tr>
+                            <td>{{ assignment.employee }}</td>
+                            <td>{{ assignment.assigned_date|date:"d.m.Y" }}</td>
+                            <td>{{ assignment.returned_date|date:"d.m.Y"|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center text-muted py-3">Gecmis zimmet kaydi yok.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

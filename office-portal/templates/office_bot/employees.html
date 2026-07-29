@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Personeller{% endblock %}
+{% block page_title %}Personeller{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+    <a href="{% url 'office_bot:duty_dashboard' %}" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Görev Takibi'ne dön</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-4">
+        <div class="card">
+            <div class="card-header">{% if editing %}{{ editing.full_name }} — Düzenle{% else %}Yeni Personel{% endif %}</div>
+            <div class="card-body">
+                <form method="post" action="{% if editing %}{% url 'office_bot:employee_edit' editing.pk %}{% else %}{% url 'office_bot:employee_list' %}{% endif %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.full_name.label }}</label>
+                        {{ form.full_name }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.discord_user_id.label }}</label>
+                        {{ form.discord_user_id }}
+                    </div>
+                    {% if not editing %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.position.label }}</label>
+                        {{ form.position }}
+                    </div>
+                    {% endif %}
+                    <div class="mb-3 form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label">{{ form.is_active.label }}</label>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm">{% if editing %}Kaydet{% else %}Ekle{% endif %}</button>
+                        {% if editing %}<a href="{% url 'office_bot:employee_list' %}" class="btn btn-outline-secondary btn-sm">İptal</a>{% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <span>Personel Listesi</span>
+                <span class="pill-badge pill-info">{{ counts.total }} kayıt · {{ counts.active }} aktif</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-modern mb-0 align-middle">
+                    <thead><tr><th>#</th><th>Ad Soyad</th><th>Discord ID</th><th>Durum</th><th></th></tr></thead>
+                    <tbody>
+                        {% for employee in employees %}
+                        <tr>
+                            <td>{{ employee.position }}</td>
+                            <td>{{ employee.full_name }}</td>
+                            <td class="text-muted small">{{ employee.discord_user_id|default:"—" }}</td>
+                            <td>
+                                {% if employee.is_active_bool %}<span class="pill-badge pill-success">Aktif</span>{% else %}<span class="pill-badge pill-muted">Pasif</span>{% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <form method="post" action="{% url 'office_bot:employee_move' employee.pk %}"><input type="hidden" name="direction" value="up">{% csrf_token %}<button class="btn btn-light btn-sm border" title="Yukarı taşı"><i class="bi bi-arrow-up"></i></button></form>
+                                    <form method="post" action="{% url 'office_bot:employee_move' employee.pk %}"><input type="hidden" name="direction" value="down">{% csrf_token %}<button class="btn btn-light btn-sm border" title="Aşağı taşı"><i class="bi bi-arrow-down"></i></button></form>
+                                    <a href="{% url 'office_bot:employee_edit' employee.pk %}" class="btn btn-light btn-sm border" title="Düzenle"><i class="bi bi-pencil"></i></a>
+                                    <form method="post" action="{% url 'office_bot:employee_toggle' employee.pk %}">{% csrf_token %}<button class="btn btn-light btn-sm border" title="Aktif/Pasif">{% if employee.is_active_bool %}<i class="bi bi-pause"></i>{% else %}<i class="bi bi-play"></i>{% endif %}</button></form>
+                                    <form method="post" action="{% url 'office_bot:employee_delete' employee.pk %}" data-confirm="{{ employee.full_name }} silinsin mi?">{% csrf_token %}<button class="btn btn-light btn-sm border text-danger" title="Sil"><i class="bi bi-trash"></i></button></form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-4">Henüz personel eklenmemiş.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

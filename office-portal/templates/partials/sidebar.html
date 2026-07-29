@@ -1,0 +1,85 @@
+{% load portal_extras %}
+<aside class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+        <div>
+            <div class="brand-title">OFİS PORTALI</div>
+            <div class="brand-subtitle">Kurumsal Yönetim Merkezi</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+           href="{% url 'portal:dashboard' %}">
+            <i class="bi bi-grid-1x2"></i> <span class="nav-label">Dashboard</span>
+        </a>
+
+        <div class="nav-section-title">Operasyonlar</div>
+        {% for module in sidebar_modules %}
+        {% if module.children %}
+        {% with is_open=request.path|matches_any_prefix:module.active_prefixes %}
+        <button type="button" class="nav-link nav-link-toggle w-100 border-0 bg-transparent text-start {% if is_open %}active{% endif %}"
+                data-bs-toggle="collapse" data-bs-target="#submenu-{{ module.slug }}"
+                aria-expanded="{% if is_open %}true{% else %}false{% endif %}">
+            <i class="bi {{ module.icon }}"></i>
+            <span class="nav-label flex-grow-1">{{ module.name }}</span>
+            {% if module.slug == 'zimmet' and pending_return_count %}<span class="badge rounded-pill text-bg-warning me-1">{{ pending_return_count }}</span>{% endif %}
+            <i class="bi bi-chevron-down nav-toggle-caret"></i>
+        </button>
+        <div class="collapse {% if is_open %}show{% endif %}" id="submenu-{{ module.slug }}">
+            <div class="nav-submenu">
+                {% for child in module.children %}
+                <a class="nav-link nav-sublink {% if request.path == child.url %}active{% endif %}" href="{{ child.url }}">
+                    <i class="bi {{ child.icon }}"></i> <span class="nav-label">{{ child.name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endwith %}
+        {% else %}
+        <a class="nav-link
+                  {% if module.active_prefixes %}{% for prefix in module.active_prefixes %}{% if request.path|startswith:prefix %}active{% endif %}{% endfor %}
+                  {% elif request.resolver_match.url_name == 'module' and request.resolver_match.kwargs.slug == module.slug %}active{% endif %}"
+           href="{{ module.link_url }}">
+            <i class="bi {{ module.icon }}"></i> <span class="nav-label">{{ module.name }}</span>
+        </a>
+        {% endif %}
+        {% endfor %}
+
+        <div class="nav-section-title">Genel</div>
+        <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
+           href="{% url 'portal:reports' %}">
+            <i class="bi bi-bar-chart"></i> <span class="nav-label">Raporlar</span>
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
+           href="{% url 'portal:settings' %}">
+            <i class="bi bi-gear"></i> <span class="nav-label">Ayarlar</span>
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+           href="{% url 'accounts:profile' %}">
+            <i class="bi bi-person-circle"></i> <span class="nav-label">Profil</span>
+        </a>
+        <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">
+                <i class="bi bi-box-arrow-right"></i> <span class="nav-label">Çıkış Yap</span>
+            </button>
+        </form>
+    </nav>
+
+    <div class="sidebar-user">
+        {% with employee=request.user.employee_profile %}
+        {% if employee and employee.profile_photo %}
+        <img src="{{ employee.profile_photo.url }}" class="avatar-circle" alt="{{ employee.full_name }}">
+        {% else %}
+        <span class="avatar-circle">{{ request.user.get_full_name|default:request.user.username|first|upper }}</span>
+        {% endif %}
+        <div>
+            <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+            <div class="user-role">
+                <span class="status-dot"></span>{{ employee.company.name|default:request.user.get_role_display }}
+            </div>
+        </div>
+        {% endwith %}
+    </div>
+</aside>

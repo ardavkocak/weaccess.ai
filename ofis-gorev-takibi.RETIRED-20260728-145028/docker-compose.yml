@@ -1,0 +1,41 @@
+# Ofis Görev Takip Sistemi — tek komutla çalıştırma.
+#
+#   docker compose up -d --build     → derle ve arka planda başlat
+#   docker compose logs -f           → günlükleri izle
+#   docker compose down              → durdur (veriler volume'da kalır)
+#
+# Ayarlar .env dosyasından okunur (env_file). Discord token, admin parolası,
+# SESSION_SECRET gibi değerler imaja gömülmez; yalnızca çalışma anında gelir.
+
+services:
+  app:
+    build: .
+    image: office-task-tracking:latest
+    container_name: c_office-task-tracking_app
+    restart: unless-stopped
+
+    # Tüm ayarlar buradan gelir. .env yoksa .env.example'ı kopyalayıp doldurun.
+    env_file:
+      - .env
+
+    environment:
+      # .env'de ne yazarsa yazsın, veritabanı konteyner içinde her zaman
+      # /app/data altında (aşağıdaki volume) olmalı ki kalıcı olsun.
+      DATABASE_FILE: data/office-task-tracking.sqlite
+
+    ports:
+      # Dışarıya 3000. Sağ tarafı uygulamanın PORT'u; .env'de PORT değiştirirseniz
+      # buradaki sağ değeri de eşitleyin.
+      - "8110:3000"
+
+    volumes:
+      # Veritabanı ve oturumlar host'ta kalıcı — konteyner silinse bile veri durur.
+      - ./ofis-data:/app/data
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:'+(process.env.PORT||3000)+'/giris',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+

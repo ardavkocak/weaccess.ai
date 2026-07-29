@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Yemek Sistemi{% endblock %}
+{% block page_title %}Yemek Sistemi{% endblock %}
+{% block content %}
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-7">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>{{ completed_date }} Anket Sonuçları
+                    <span class="text-muted small fw-normal">(en son tamamlanan iş günü)</span>
+                </span>
+                <span class="pill-badge pill-muted"><i class="bi bi-lock-fill"></i> Kapalı</span>
+            </div>
+            <div class="card-body">
+                {% if not completed_menu %}
+                <span class="text-muted">O gün için tanımlı bir menü yoktu; anket sonucu yok.</span>
+                {% else %}
+                <div class="meal-dish-list mb-3">
+                    {% for item in completed_menu.items %}
+                    <span class="meal-dish-chip">{{ item.icon }} {{ item.name }}{% if item.kcal %} <span class="text-muted">({{ item.kcal }} kcal)</span>{% endif %}</span>
+                    {% endfor %}
+                </div>
+                {% if completed_menu.total_kcal %}
+                <p class="small text-muted mb-3"><i class="bi bi-fire"></i> Toplam menü kalorisi: <strong>{{ completed_menu.total_kcal }} kcal</strong></p>
+                {% endif %}
+
+                <div class="row g-3 my-2">
+                    <div class="col-4">
+                        <div class="card hero-stat-card h-100"><div class="card-body">
+                            <div class="stat-value">{{ participation.counts.responded }}/{{ participation.counts.total }}</div>
+                            <div class="stat-label">Toplam Katılım</div>
+                        </div></div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card hero-stat-card h-100"><div class="card-body">
+                            <div class="stat-value">%{{ participation_rate }}</div>
+                            <div class="stat-label">Katılım Yüzdesi</div>
+                        </div></div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card hero-stat-card h-100"><div class="card-body">
+                            <div class="stat-value">{{ participation.counts.yes }} / {{ participation.counts.no }}</div>
+                            <div class="stat-label">Yiyecek / Yemeyecek</div>
+                        </div></div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-md-4">
+                        <div class="fw-semibold small mb-1">✅ Yiyecekler ({{ participation.counts.yes }})</div>
+                        <ul class="list-group list-group-flush">{% for p in participation.yes %}<li class="list-group-item small">{{ p.name }}</li>{% empty %}<li class="list-group-item small text-muted">—</li>{% endfor %}</ul>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="fw-semibold small mb-1">❌ Yemeyecekler ({{ participation.counts.no }})</div>
+                        <ul class="list-group list-group-flush">{% for p in participation.no %}<li class="list-group-item small">{{ p.name }}</li>{% empty %}<li class="list-group-item small text-muted">—</li>{% endfor %}</ul>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="fw-semibold small mb-1">⏳ Cevap Vermeyenler ({{ participation.counts.pending }})</div>
+                        <ul class="list-group list-group-flush">{% for p in participation.pending %}<li class="list-group-item small">{{ p.name }}{% if p.has_no_discord_id %} <span class="pill-badge pill-muted">ID yok</span>{% endif %}</li>{% empty %}<li class="list-group-item small text-muted">—</li>{% endfor %}</ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header">Bugün</div>
+            <div class="card-body">
+                {% if today_menu %}
+                <div class="meal-dish-list mb-2">
+                    {% for item in today_menu.items %}
+                    <span class="meal-dish-chip">{{ item.icon }} {{ item.name }}{% if item.kcal %} <span class="text-muted">({{ item.kcal }} kcal)</span>{% endif %}</span>
+                    {% endfor %}
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    {% if today_menu.total_kcal %}<span class="small text-muted"><i class="bi bi-fire"></i> {{ today_menu.total_kcal }} kcal</span>{% else %}<span></span>{% endif %}
+                    <span class="pill-badge {% if today_menu.is_open %}pill-success{% else %}pill-muted{% endif %}">
+                        {% if today_menu.is_open %}<i class="bi bi-unlock-fill"></i> Açık{% else %}<i class="bi bi-lock-fill"></i> Kapalı{% endif %}
+                    </span>
+                </div>
+                {% else %}
+                <span class="text-muted">Menü yok</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header">Sıradaki Duyuru</div>
+            <div class="card-body">
+                {% if next_menu %}
+                <div class="meal-dish-list mb-2">
+                    {% for item in next_menu.items %}
+                    <span class="meal-dish-chip">{{ item.icon }} {{ item.name }}{% if item.kcal %} <span class="text-muted">({{ item.kcal }} kcal)</span>{% endif %}</span>
+                    {% endfor %}
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    {% if next_menu.total_kcal %}<span class="small text-muted"><i class="bi bi-fire"></i> {{ next_menu.total_kcal }} kcal</span>{% else %}<span></span>{% endif %}
+                    <span class="pill-badge {% if next_menu.is_open %}pill-success{% else %}pill-muted{% endif %}">
+                        {% if next_menu.is_open %}<i class="bi bi-unlock-fill"></i> Açık{% else %}<i class="bi bi-lock-fill"></i> Kapalı{% endif %}
+                    </span>
+                </div>
+                {% else %}
+                <span class="text-muted">Menü yok</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header">Aylık Menü Yükle</div>
+            <div class="card-body">
+                <form method="post" action="{% url 'office_bot:meal_upload' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <input type="file" name="excel_file" accept=".xlsx" class="form-control" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="replace_all" class="form-check-input" id="replaceAll">
+                        <label class="form-check-label" for="replaceAll">Mevcut tüm menüleri sil</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-upload"></i> Yükle</button>
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Menü Özeti</span>
+                <form method="post" action="{% url 'office_bot:meal_remove_all' %}" data-confirm="Tüm menüler silinsin mi?">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Tümünü Sil</button>
+                </form>
+            </div>
+            <div class="card-body">
+                <span class="pill-badge pill-info">{{ summary.total }} kayıtlı gün</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

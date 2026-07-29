@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Yemek Sistemi Yönetimi{% endblock %}
+{% block page_title %}Yemek Sistemi Yönetimi{% endblock %}
+{% block content %}
+
+<div class="card mb-3">
+    <div class="card-header">Yemek Bildirim Zamanlaması</div>
+    <div class="card-body">
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3">
+                <div class="card hero-stat-card h-100"><div class="card-body">
+                    <div class="stat-value">{% if schedule.enabled %}Açık{% else %}Kapalı{% endif %}</div>
+                    <div class="stat-label">Otomatik Gönderim</div>
+                </div></div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card hero-stat-card h-100"><div class="card-body">
+                    <div class="stat-value">{{ schedule.time }}</div>
+                    <div class="stat-label">Gönderim Saati</div>
+                </div></div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card hero-stat-card h-100"><div class="card-body">
+                    <div class="stat-value">{% if schedule.last_announced_date %}{{ schedule.last_announced_date }}{% else %}—{% endif %}</div>
+                    <div class="stat-label">Son Gönderim Tarihi</div>
+                </div></div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card hero-stat-card h-100"><div class="card-body">
+                    <div class="stat-value">{{ schedule.next_date }}</div>
+                    <div class="stat-label">Sonraki Gönderim ({{ schedule.time }})</div>
+                </div></div>
+            </div>
+        </div>
+
+        <form method="post" class="d-flex gap-3 align-items-end flex-wrap">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_schedule">
+            <div>
+                <label class="form-label small mb-1">Gönderim Saati</label>
+                <input type="time" step="60" name="meal_notify_time" class="form-control form-control-sm" value="{{ schedule.time }}" style="width: 140px;" required>
+            </div>
+            <div class="form-check mb-2">
+                <input type="checkbox" class="form-check-input" id="scheduleEnabled" name="meal_notify_enabled" {% if schedule.enabled %}checked{% endif %}>
+                <label class="form-check-label small" for="scheduleEnabled">Otomatik gönderim açık</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Kaydet</button>
+        </form>
+        <p class="text-muted small mt-2 mb-0">
+            Menü, bu saatte otomatik olarak Discord'a gönderilir. "Menüyü Gönder" butonu bu ayardan bağımsızdır ve her zaman anında gönderir.
+        </p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-5">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Menü Duyurusu</span>
+                <span class="pill-badge {% if bot_configured %}pill-success{% else %}pill-muted{% endif %}">
+                    {% if bot_configured %}Discord bağlı{% else %}Yapılandırılmadı{% endif %}
+                </span>
+            </div>
+            <div class="card-body">
+                {% if menu %}
+                <div class="meal-dish-list mb-2">
+                    {% for item in menu.items %}
+                    <span class="meal-dish-chip">{{ item.icon }} {{ item.name }}{% if item.kcal %} <span class="text-muted">({{ item.kcal }} kcal)</span>{% endif %}</span>
+                    {% endfor %}
+                </div>
+                <p class="small text-muted mb-3">
+                    {{ tracked.menu_date }} tarihli menü Discord'a gönderildi.
+                    <span class="pill-badge {% if tracked.closed %}pill-muted{% else %}pill-success{% endif %}">
+                        {% if tracked.closed %}<i class="bi bi-lock-fill"></i> Kapalı{% else %}<i class="bi bi-unlock-fill"></i> Açık{% endif %}
+                    </span>
+                </p>
+                {% else %}
+                <p class="text-muted small mb-3">Henüz bir menü gönderilmedi.</p>
+                {% endif %}
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="send_menu">
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send"></i> 📨 Menüyü Gönder</button>
+                    </form>
+                    <form method="post" data-confirm="Anket kapatılsın mı? Discord'daki butonlar tamamen pasif hale gelecek.">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="close_poll">
+                        <button type="submit" class="btn btn-outline-warning btn-sm" {% if not tracked or tracked.closed %}disabled{% endif %}>
+                            <i class="bi bi-lock"></i> Anketi Kapat
+                        </button>
+                    </form>
+                    <form method="post" data-confirm="Bu menünün sonuçları ve Discord mesajı tamamen silinsin mi?">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="clear_results">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" {% if not tracked %}disabled{% endif %}>
+                            <i class="bi bi-trash"></i> Sonuçları Temizle
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">Özel Mesaj Gönder</div>
+            <div class="card-body">
+                <form method="post" class="d-flex gap-2 align-items-end flex-wrap">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="send_test_dm">
+                    <div>
+                        <label class="form-label small mb-1">Discord Kullanıcı ID</label>
+                        <input type="text" name="discord_user_id" class="form-control form-control-sm" placeholder="Örn. 123456789012345678" style="width: 240px;">
+                    </div>
+                    <button type="submit" class="btn btn-light btn-sm border"><i class="bi bi-send"></i> Gönder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-7">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Katılım</span>
+                <span id="participation-updated" class="text-muted small"></span>
+            </div>
+            <div class="card-body" id="participation-body">
+                {% if not tracked %}
+                <p class="text-muted small mb-0">Menü gönderildiğinde katılım burada görünecek.</p>
+                {% else %}
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="fw-semibold small mb-2">✅ Yiyecekler (<span data-count="yes">{{ participation.counts.yes }}</span>)</div>
+                        <ul class="list-group list-group-flush" data-list="yes">
+                            {% for p in participation.yes %}<li class="list-group-item small">{{ p.name }}</li>{% empty %}<li class="list-group-item small text-muted">—</li>{% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="fw-semibold small mb-2">❌ Yemeyecekler (<span data-count="no">{{ participation.counts.no }}</span>)</div>
+                        <ul class="list-group list-group-flush" data-list="no">
+                            {% for p in participation.no %}<li class="list-group-item small">{{ p.name }}</li>{% empty %}<li class="list-group-item small text-muted">—</li>{% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="fw-semibold small mb-2">⏳ Henüz Oy Vermeyenler (<span data-count="pending">{{ participation.counts.pending }}</span>)</div>
+                        <ul class="list-group list-group-flush" data-list="pending">
+                            {% for p in participation.pending %}<li class="list-group-item small">{{ p.name }}</li>{% empty %}<li class="list-group-item small text-muted">—</li>{% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if tracked %}
+<script>
+(function () {
+    const url = "{% url 'office_bot:meal_test_participation_api' %}";
+    const updatedLabel = document.getElementById('participation-updated');
+
+    function renderList(name, items) {
+        const list = document.querySelector(`[data-list="${name}"]`);
+        const countEl = document.querySelector(`[data-count="${name}"]`);
+        if (!list || !countEl) return;
+        countEl.textContent = items.length;
+        list.innerHTML = items.length
+            ? items.map((p) => `<li class="list-group-item small">${p.name}</li>`).join('')
+            : '<li class="list-group-item small text-muted">—</li>';
+    }
+
+    async function refresh() {
+        try {
+            const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!resp.ok) return;
+            const data = await resp.json();
+            if (!data.tracked) return;
+            renderList('yes', data.yes);
+            renderList('no', data.no);
+            renderList('pending', data.pending);
+            updatedLabel.textContent = 'Güncellendi: ' + new Date().toLocaleTimeString('tr-TR');
+        } catch (e) {
+            // Sessizce geç: bir sonraki denemede tekrar dener.
+        }
+    }
+
+    refresh();
+    setInterval(refresh, 4000);
+})();
+</script>
+{% endif %}
+
+{% endblock %}

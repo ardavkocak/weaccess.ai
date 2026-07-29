@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}İK Otomasyonu{% endblock %}
+{% block page_title %}İK Otomasyonu{% endblock %}
+{% block content %}
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-7">
+        <div class="card h-100">
+            <div class="card-header">Çalışan Dosyasını Yükle</div>
+            <div class="card-body">
+                <p class="text-muted small">Excel'deki (.xlsx/.csv) ilk satır sütun başlığı olarak korunur; tüm satırlar tabloya aktarılır. Beklenen sütunlar: <strong>Ad Soyad</strong>, <strong>Doğum Tarihi</strong>, <strong>İşe Giriş Tarihi</strong>.</p>
+                <form method="post" action="{% url 'hr:upload' %}" enctype="multipart/form-data" class="d-flex gap-2 flex-wrap">
+                    {% csrf_token %}
+                    <input type="file" name="excel" accept=".xlsx,.csv" class="form-control" style="max-width: 320px;" required>
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-upload"></i> Yükle ve Tabloyu Oluştur</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-5">
+        <div class="card h-100" style="background-color: var(--brand-primary); color: #fff;">
+            <div class="card-body">
+                <p class="mb-1 opacity-75 small">Kayıtlı çalışan</p>
+                <p class="display-6 fw-bold mb-2">{{ employees|length }}</p>
+                <form method="post" action="{% url 'hr:test_reminders' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-light btn-sm">İK e-postasını test et</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Çalışan Listesi</span>
+        <span class="pill-badge pill-info">{{ headers|length }} sütun · {{ employees|length }} kayıt</span>
+    </div>
+    <div class="table-responsive">
+        {% if headers %}
+        <table class="table table-modern mb-0">
+            <thead><tr>{% for header in headers %}<th>{{ header }}</th>{% endfor %}</tr></thead>
+            <tbody>
+                {% for employee in employees %}
+                <tr>{% for value in employee.values %}<td>{{ value }}</td>{% endfor %}</tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-5">Başlamak için bir çalışan Excel dosyası yükleyin.</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">E-posta Bildirim Ayarları</div>
+    <div class="card-body">
+        <form method="post" action="{% url 'hr:settings' %}" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-6">
+                <label class="form-label">Gönderen e-posta</label>
+                <input name="senderEmail" class="form-control" value="{{ settings.sender_email }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Alıcı e-postaları</label>
+                <textarea name="recipientEmails" rows="1" class="form-control">{{ settings.recipient_emails|join:", " }}</textarea>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">SMTP Host</label>
+                <input name="smtpHost" class="form-control" value="{{ settings.smtp_host }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">SMTP Port</label>
+                <input name="smtpPort" class="form-control" value="{{ settings.smtp_port|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">TLS/SSL</label>
+                <select name="smtpSecure" class="form-select">
+                    <option value="false" {% if not settings.smtp_secure %}selected{% endif %}>Hayır (STARTTLS)</option>
+                    <option value="true" {% if settings.smtp_secure %}selected{% endif %}>Evet (SSL/TLS)</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">SMTP Kullanıcı</label>
+                <input name="smtpUser" class="form-control" value="{{ settings.smtp_user }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">SMTP Parola</label>
+                <input type="password" name="smtpPass" class="form-control" placeholder="{% if settings.smtp_pass %}(değiştirmek için yeni parola girin){% endif %}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">E-posta From adresi</label>
+                <input name="mailFrom" class="form-control" value="{{ settings.mail_from }}">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-sm">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

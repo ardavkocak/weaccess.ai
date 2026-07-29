@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-person-plus me-2"></i>{{ title }}</div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}<div class="alert alert-danger py-2">{{ form.non_field_errors }}</div>{% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.employee.id_for_label }}">{{ form.employee.label }}</label>
+                        {{ form.employee }}
+                        {% for error in form.employee.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    {# --- Cihaz satirlari (cihaz + adet); "+ Urun Ekle" ile cogaltilir --- #}
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <label class="form-label mb-0">Zimmetlenecek Urunler <span class="text-muted small">(yalnizca bosta adedi olanlar listelenir)</span></label>
+                    </div>
+
+                    {{ formset.management_form }}
+                    {% if formset.non_form_errors %}<div class="alert alert-danger py-2">{{ formset.non_form_errors }}</div>{% endif %}
+
+                    <div id="assignmentItems">
+                        {% for item_form in formset %}
+                        <div class="row g-2 align-items-start mb-2 assignment-item">
+                            <div class="col-md-7">
+                                {{ item_form.device }}
+                                {% for error in item_form.device.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3">
+                                {{ item_form.quantity }}
+                                {% for error in item_form.quantity.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-2 d-grid">
+                                <button type="button" class="btn btn-outline-danger" data-remove-item title="Satiri kaldir">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            {% if item_form.non_field_errors %}
+                            <div class="col-12"><div class="text-danger small">{{ item_form.non_field_errors }}</div></div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {# Yeni satirlar bu sablondan uretilir (__prefix__ index ile degistirilir). #}
+                    <template id="assignmentItemTemplate">
+                        <div class="row g-2 align-items-start mb-2 assignment-item">
+                            <div class="col-md-7">{{ formset.empty_form.device }}</div>
+                            <div class="col-md-3">{{ formset.empty_form.quantity }}</div>
+                            <div class="col-md-2 d-grid">
+                                <button type="button" class="btn btn-outline-danger" data-remove-item title="Satiri kaldir">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="addAssignmentItem">
+                        <i class="bi bi-plus-lg me-1"></i> Urun Ekle
+                    </button>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ form.assigned_date.id_for_label }}">{{ form.assigned_date.label }}</label>
+                            {{ form.assigned_date }}
+                            {% for error in form.assigned_date.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ form.expected_return_date.id_for_label }}">{{ form.expected_return_date.label }}</label>
+                            {{ form.expected_return_date }}
+                            {% for error in form.expected_return_date.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        <label class="form-label" for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Zimmetle</button>
+                        <a href="{% url 'inventory:assignment-list' %}" class="btn btn-outline-secondary">Vazgec</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

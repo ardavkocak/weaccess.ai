@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="card hero-stat-card h-100">
+            <div class="card-body rounded-5">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="stat-icon icon-bg-blue"><i class="bi bi-box-seam"></i></div>
+                    <div>
+                        <div class="stat-value">{{ total_device_types }}</div>
+                        <div class="stat-label">Toplam Cihaz Turu</div>
+                    </div>
+                </div>
+                <svg class="stat-spark spark-blue" viewBox="0 0 56 24" preserveAspectRatio="none"><polyline points="0,10 10,16 20,9 30,13 40,6 56,10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2 " >
+        <div class="card hero-stat-card h-100">
+            <div class="card-body rounded-5 rounded-5">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="stat-icon icon-bg-blue"><i class="bi bi-stack"></i></div>
+                    <div>
+                        <div class="stat-value">{{ total_quantity }}</div>
+                        <div class="stat-label">Toplam Urun Adedi</div>
+                    </div>
+                </div>
+                <svg class="stat-spark spark-blue" viewBox="0 0 56 24" preserveAspectRatio="none"><polyline points="0,14 10,10 20,15 30,9 40,12 56,6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="card hero-stat-card h-100">
+            <div class="card-body rounded-5">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="stat-icon icon-bg-blue"><i class="bi bi-clipboard-check"></i></div>
+                    <div>
+                        <div class="stat-value">{{ assigned_quantity }}</div>
+                        <div class="stat-label">Zimmetteki Urun</div>
+                    </div>
+                </div>
+                <svg class="stat-spark spark-blue" viewBox="0 0 56 24" preserveAspectRatio="none"><polyline points="0,18 10,15 20,17 30,10 40,12 56,4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="card hero-stat-card h-100">
+            <div class="card-body rounded-5">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="stat-icon icon-bg-blue"><i class="bi bi-inboxes"></i></div>
+                    <div>
+                        <div class="stat-value">{{ available_quantity }}</div>
+                        <div class="stat-label">Bostaki Urun</div>
+                    </div>
+                </div>
+                <svg class="stat-spark spark-blue" viewBox="0 0 56 24" preserveAspectRatio="none"><polyline points="0,16 10,12 20,15 30,8 40,11 56,7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="card hero-stat-card h-100">
+            <div class="card-body rounded-5">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="stat-icon icon-bg-blue"><i class="bi bi-people"></i></div>
+                    <div>
+                        <div class="stat-value">{{ total_employees }}</div>
+                        <div class="stat-label">Toplam Personel</div>
+                    </div>
+                </div>
+                <svg class="stat-spark spark-blue" viewBox="0 0 56 24" preserveAspectRatio="none"><polyline points="0,20 10,14 20,17 30,8 40,11 56,2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4 col-xl-2">
+        <div class="card hero-stat-card h-100">
+            <div class="card-body rounded-5">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="stat-icon icon-bg-blue"><i class="bi bi-building"></i></div>
+                    <div>
+                        <div class="stat-value">{{ total_companies }}</div>
+                        <div class="stat-label">Toplam Sirket</div>
+                    </div>
+                </div>
+                <svg class="stat-spark spark-blue" viewBox="0 0 56 24" preserveAspectRatio="none"><polyline points="0,12 10,15 20,9 30,13 40,7 56,9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if overdue_assignment_count %}
+<div class="alert alert-warning d-flex align-items-center gap-2">
+    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+    <div>{{ overdue_assignment_count }} cihazin iade tarihi gecmis durumda. <a href="{% url 'inventory:assignment-list' %}?status=overdue" class="alert-link">Detaylari goruntule</a></div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Son Zimmet Kayitlari</span>
+        <a href="{% url 'inventory:assignment-list' %}" class="small text-decoration-none">Tumunu Goruntule <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-modern mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Calisan</th>
+                    <th>Cihaz</th>
+                    <th>Zimmet Tarihi</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in recent_assignments %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="avatar-circle">{{ assignment.employee.first_name|first|upper }}</span>
+                            <span>{{ assignment.employee }}</span>
+                        </div>
+                    </td>
+                    <td>{{ assignment.device }}</td>
+                    <td>{{ assignment.assigned_date }}</td>
+                    <td>
+                        {% if assignment.returned %}
+                        <span class="pill-badge pill-info">Iade Edildi</span>
+                        {% else %}
+                        <span class="pill-badge pill-success">Aktif</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Henuz zimmet islemi yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,83 @@
+/*
+ * Tailwind'i tamamlayan az sayıda özel kural.
+ * Görsel dilin tamamı Tailwind sınıflarıyla kurulur; burada yalnızca Tailwind'in
+ * karşılamadığı ayrıntılar bulunur.
+ */
+
+/* Yazı tipi. İnternet yoksa system-ui'ye düşer (head.ejs'teki font yığını). */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Yumuşak kaydırma ve daha okunaklı başlık dengesi */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Sayfa yüklenirken içeriğin belirmesi (Play CDN'in stil uygulama gecikmesini yumuşatır) */
+body {
+  animation: fade-in 0.15s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Flash mesajlarının kapanış animasyonu */
+.flash-message {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.flash-message.is-closing {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* İnce kaydırma çubuğu (sol menü ve uzun listeler) */
+@media (min-width: 1024px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: rgb(203 213 225); /* slate-300 */
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(148 163 184); /* slate-400 */
+  }
+}
+
+/* Görev sırası sürükle-bırak: taşınan satır ve bırakılacak yer belirgin olsun */
+.queue-row.is-dragging {
+  opacity: 0.55;
+  background-color: rgb(238 242 255); /* indigo-50 */
+  box-shadow: 0 8px 20px -10px rgb(15 23 42 / 45%);
+}
+
+/* Sürükleme sırasında metin seçilip imleç değişmesin */
+.queue-reordering {
+  user-select: none;
+  cursor: grabbing;
+}
+
+/* Klavye ile gezinenler için belirgin odak halkası */
+:focus-visible {
+  outline: 2px solid rgb(79 70 229); /* brand-600 */
+  outline-offset: 2px;
+}
+
+/* Yazdırma: menü ve butonlar kağıda basılmasın */
+@media print {
+  aside,
+  header,
+  footer,
+  form {
+    display: none !important;
+  }
+  .lg\:pl-64 {
+    padding-left: 0 !important;
+  }
+}

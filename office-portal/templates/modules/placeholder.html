@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ module.name }}{% endblock %}
+{% block page_title %}{{ module.name }}{% endblock %}
+{% block content %}
+
+<div class="card">
+    <div class="card-body text-center py-5">
+        <div class="module-icon icon-bg-blue mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.8rem;">
+            <i class="bi {{ module.icon|default:'bi-hourglass-split' }}"></i>
+        </div>
+        <h4 class="mb-2">{{ module.name }}</h4>
+        <p class="text-muted mb-3" style="max-width: 480px; margin-left: auto; margin-right: auto;">
+            {{ module.description }}
+        </p>
+        <span class="pill-badge {% if integration_ok %}pill-success{% else %}pill-warning{% endif %}">
+            <i class="bi {% if integration_ok %}bi-check-circle{% else %}bi-hourglass-split{% endif %}"></i>
+            {{ integration_message }}
+        </span>
+        <div class="mt-4">
+            <a href="{% url 'portal:dashboard' %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-left"></i> Dashboard'a dön
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

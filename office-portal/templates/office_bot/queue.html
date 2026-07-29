@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Görev Sırası{% endblock %}
+{% block page_title %}Görev Sırası{% endblock %}
+{% block content %}
+
+{% if not duty_type %}
+<div class="alert alert-warning">Henüz bir görev türü tanımlı değil.</div>
+{% else %}
+<div class="card">
+    <div class="card-header">{{ duty_type.name }} {{ duty_type.emoji }} — Sıra Listesi</div>
+    <div class="table-responsive">
+        <table class="table table-modern mb-0 align-middle">
+            <thead><tr><th>#</th><th>Personel</th><th>Durum</th><th class="text-end">Taşı</th></tr></thead>
+            <tbody>
+                {% for entry in overview.queue %}
+                <tr>
+                    <td>{{ entry.employee.position }}</td>
+                    <td>{{ entry.employee.full_name }}</td>
+                    <td>
+                        {% if entry.is_today %}<span class="pill-badge pill-success">Bugün</span>{% endif %}
+                        {% if entry.is_next %}<span class="pill-badge pill-info">Sırada</span>{% endif %}
+                        {% if not entry.employee.is_active_bool %}<span class="pill-badge pill-muted">Pasif</span>{% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <form method="post" action="{% url 'office_bot:employee_move' entry.employee.pk %}">
+                                <input type="hidden" name="direction" value="up">
+                                <input type="hidden" name="redirect_to" value="{% url 'office_bot:queue' %}">
+                                {% csrf_token %}
+                                <button class="btn btn-light btn-sm border" title="Yukarı taşı"><i class="bi bi-arrow-up"></i></button>
+                            </form>
+                            <form method="post" action="{% url 'office_bot:employee_move' entry.employee.pk %}">
+                                <input type="hidden" name="direction" value="down">
+                                <input type="hidden" name="redirect_to" value="{% url 'office_bot:queue' %}">
+                                {% csrf_token %}
+                                <button class="btn btn-light btn-sm border" title="Aşağı taşı"><i class="bi bi-arrow-down"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-4">Henüz personel eklenmemiş.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<p class="text-muted small mt-3">
+    Sıradaki kişi, bir sonraki gün için ilk sorulacak kişidir. Sıra yalnızca görevi
+    fiilen yapan kişiyle ilerler — atlanan kişiler haklarını kaybetmez.
+</p>
+{% endif %}
+
+{% endblock %}

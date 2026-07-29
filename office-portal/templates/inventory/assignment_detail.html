@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Zimmet Detayi{% endblock %}
+{% block page_title %}Zimmet Detayi{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-arrow-left-right me-2"></i>{{ assignment }}</span>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'inventory:assignment-delivery-pdf' assignment.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Teslim Tutanagi
+                    </a>
+                    {% if assignment.returned %}
+                    <a href="{% url 'inventory:assignment-return-pdf' assignment.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Iade Tutanagi
+                    </a>
+                    {% else %}
+                    <a href="{% url 'inventory:assignment-return' assignment.pk %}" class="btn btn-sm btn-outline-warning">Iade Al</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr><th class="text-muted" style="width:220px;">Cihaz</th><td><a href="{{ assignment.device.get_absolute_url }}">{{ assignment.device }}</a></td></tr>
+                    <tr><th class="text-muted">Calisan</th><td><a href="{{ assignment.employee.get_absolute_url }}">{{ assignment.employee }}</a></td></tr>
+                    <tr><th class="text-muted">Teslim Tarihi</th><td>{{ assignment.assigned_date }}</td></tr>
+                    <tr><th class="text-muted">Beklenen Iade Tarihi</th><td>{{ assignment.expected_return_date|default:"-" }}</td></tr>
+                    <tr><th class="text-muted">Gercek Iade Tarihi</th><td>{{ assignment.returned_date|default:"-" }}</td></tr>
+                    <tr><th class="text-muted">Teslim Eden</th><td>{{ assignment.assigned_by|default:"-" }}</td></tr>
+                    <tr><th class="text-muted">Iadeyi Alan</th><td>{{ assignment.returned_by|default:"-" }}</td></tr>
+                    <tr><th class="text-muted">Teslim Notu</th><td>{{ assignment.notes|default:"-" }}</td></tr>
+                    {% if assignment.returned %}
+                    <tr><th class="text-muted">Iade Durumu</th><td>{{ assignment.get_return_condition_display|default:"-" }}</td></tr>
+                    <tr><th class="text-muted">Hasar / Eksik Aciklamasi</th><td>{{ assignment.damage_description|default:"-" }}</td></tr>
+                    {% endif %}
+                    <tr><th class="text-muted">Iade Notu</th><td>{{ assignment.return_notes|default:"-" }}</td></tr>
+                </table>
+            </div>
+            <div class="card-footer bg-white">
+                <a href="{% url 'inventory:assignment-list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Listeye Don</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
