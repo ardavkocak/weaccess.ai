@@ -1,0 +1,35 @@
+# Ortama ozgu degerler ve sirlar. Kopyalayip docker-compose.override.yml
+# yapin (.gitignore'dadir); compose bu dosyayi otomatik okur.
+#
+#   cp docker-compose.override.yml.example docker-compose.override.yml
+
+services:
+  db:
+    environment:
+      POSTGRES_DB: office_portal_db
+      POSTGRES_USER: office_portal_user
+      POSTGRES_PASSWORD: "office_portal_pass"
+
+  web:
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "django-insecure-office-portal-degistir-bu-anahtari"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+      TIME_ZONE: "Europe/Istanbul"
+
+      DB_NAME: office_portal_db
+      DB_USER: office_portal_user
+      DB_PASSWORD: "office_portal_pass"
+
+      EMAIL_BACKEND: "django.core.mail.backends.console.EmailBackend"
+      EMAIL_HOST: "smtp.gmail.com"
+      EMAIL_PORT: "587"
+      EMAIL_USE_TLS: "True"
+      EMAIL_HOST_USER: ""
+      EMAIL_HOST_PASSWORD: ""
+      DEFAULT_FROM_EMAIL: "Ofis Portali <noreply@ofisportali.local>"
+
+    # Port eslemesi yalnizca burada tanimlidir. 8000 doluysa sol tarafi
+    # degistirin (zimmet-sistemi zaten 8001'i kullaniyor).
+    ports:
+      - "8000:8000"

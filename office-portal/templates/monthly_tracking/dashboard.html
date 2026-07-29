@@ -18,7 +18,11 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label">Yıl</label>
-                <input type="number" name="yil" class="form-control" value="{{ varsayilan_yil }}">
+                <select name="yil" class="form-select">
+                    {% for y in yil_secenekleri %}
+                    <option value="{{ y }}" {% if y == varsayilan_yil %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Ay</label>

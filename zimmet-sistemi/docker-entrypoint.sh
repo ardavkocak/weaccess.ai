@@ -27,11 +27,20 @@ done
 echo "==> Veritabani migrate ediliyor..."
 python manage.py migrate --noinput
 
-# collectstatic acilista calisir, imaj insasinda DEGIL: staticfiles bir named
-# volume'dur ve volume, imajdaki dizinin uzerine baglanir. Build sirasinda
-# toplanan dosyalar calisma aninda volume tarafindan golgelenirdi.
+# collectstatic acilista calisir, imaj insasinda DEGIL: staticfiles host'tan
+# bind-mount edilir ve mount, imajdaki dizinin uzerine baglanir. Build
+# sirasinda toplanan dosyalar calisma aninda mount tarafindan golgelenirdi.
 echo "==> Statik dosyalar toplaniyor..."
-python manage.py collectstatic --noinput
+if ! python manage.py collectstatic --noinput; then
+    # WhiteNoise'un sikistirma adimi (CompressedStaticFilesStorage), staticfiles
+    # Windows host'undan bind-mount edildiginde dosyalarin mtime'ini
+    # degistiremedigi icin "Operation not permitted" ile basarisiz olabilir
+    # (Docker Desktop'in Windows bind-mount'larindaki bir kisitlama). Bu durumda
+    # sikistirmasiz toplama ile devam edilir; WhiteNoise gzip'i yine de calisma
+    # aninda yapar, yalnizca onceden sikistirilmis .gz/.br dosyalari uretilmez.
+    echo "UYARI: collectstatic sikistirmayla basarisiz oldu, --no-post-process ile tekrar deneniyor..." >&2
+    python manage.py collectstatic --noinput --no-post-process
+fi
 
 echo "==> Uygulama baslatiliyor: $*"
 exec "$@"

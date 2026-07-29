@@ -4,7 +4,15 @@
 {% block content %}
 
 <div class="card mb-4">
-    <div class="card-header">Banka Sayfasını Tara ve Google Sheets'e Aktar</div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Banka Sayfasını Tara ve Google Sheets'e Aktar</span>
+        {% if request.user.is_admin_role %}
+        <a href="{% url 'documentation:settings' %}" class="btn btn-sm btn-outline-secondary"
+           title="Google Sheets bağlantı ayarları" data-bs-toggle="tooltip">
+            <i class="bi bi-gear"></i>
+        </a>
+        {% endif %}
+    </div>
     <div class="card-body">
         <form method="post" class="row g-3">
             {% csrf_token %}
@@ -30,36 +38,48 @@
 </div>
 
 {% if hata %}
-<div class="alert alert-danger">{{ hata }}</div>
+<div class="alert alert-danger d-flex align-items-start gap-2">
+    <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+    <div>{{ hata }}</div>
+</div>
 {% endif %}
 
 {% if sonuc %}
+<div class="card mb-3">
+    <div class="card-header">Bulunan Belgeler</div>
+    <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+        <table class="table table-modern mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Kategori</th>
+                    <th>Başlık</th>
+                    <th>Tür</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for belge in sonuc.belgeler %}
+                <tr>
+                    <td><span class="pill-badge pill-muted">{{ belge.kategori }}</span></td>
+                    <td style="max-width: 380px;"><a href="{{ belge.url }}" target="_blank" rel="noopener">{{ belge.baslik }}</a></td>
+                    <td>{{ belge.tur }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a href="{{ sonuc.sekme_url }}" target="_blank" rel="noopener"
+       class="d-flex align-items-center justify-content-center gap-2 p-3 text-decoration-none fw-semibold"
+       style="background-color: var(--info-bg); color: var(--info);">
+        Google Sheets'te sekmeyi aç <i class="bi bi-box-arrow-up-right"></i>
+    </a>
+</div>
+
 <div class="alert alert-success">
     <strong>{{ sonuc.banka_adi }}</strong> için {{ sonuc.toplam }} belge Google Sheets'e yazıldı.
     <div class="d-flex gap-2 mt-2 flex-wrap">
         <span class="pill-badge pill-info">Sözleşme: {{ sonuc.sozlesme }}</span>
         <span class="pill-badge pill-info">Form: {{ sonuc.form }}</span>
         {% if sonuc.diger %}<span class="pill-badge pill-muted">Diğer: {{ sonuc.diger }}</span>{% endif %}
-    </div>
-    <a href="{{ sonuc.sekme_url }}" target="_blank" rel="noopener" class="d-inline-block mt-2 small">
-        <i class="bi bi-box-arrow-up-right"></i> Google Sheets sekmesini aç
-    </a>
-</div>
-
-<div class="card">
-    <div class="card-header">Bulunan Belgeler</div>
-    <div class="table-responsive">
-        <table class="table table-modern mb-0 align-middle">
-            <thead><tr><th>Başlık</th><th>Kategori</th></tr></thead>
-            <tbody>
-                {% for belge in sonuc.belgeler %}
-                <tr>
-                    <td><a href="{{ belge.url }}" target="_blank" rel="noopener">{{ belge.baslik }}</a></td>
-                    <td><span class="pill-badge pill-muted">{{ belge.kategori }}</span></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
 </div>
 {% endif %}

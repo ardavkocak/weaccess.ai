@@ -7,4 +7,5 @@ app_name = "documentation"
 
 urlpatterns = [
     path("", views.DashboardView.as_view(), name="dashboard"),
+    path("ayarlar/", views.SettingsView.as_view(), name="settings"),
 ]

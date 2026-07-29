@@ -402,6 +402,34 @@ a {
     color: var(--text-primary);
 }
 
+/* Şablonlarda kullanılan Bootstrap .bg-white / .text-dark / .bg-light
+   sabitleri koyu temada değişmediği için kart altlıklarını ve linkleri
+   tema degiskenlerine baglar. */
+.card-footer.bg-white,
+.card-footer {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary);
+    border-top: 1px solid var(--border-color);
+}
+
+.auth-card.bg-white {
+    background-color: var(--card-bg) !important;
+}
+
+.bg-light-subtle {
+    background-color: var(--muted-bg) !important;
+    color: var(--text-primary);
+}
+
+.bg-light {
+    background-color: var(--muted-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.text-dark {
+    color: var(--text-primary) !important;
+}
+
 /* ---------- Modul kartlari (Dashboard) ---------- */
 .module-card {
     border: none;
@@ -819,6 +847,23 @@ a {
 
 [data-theme="dark"] .table {
     color: var(--text-primary);
+    --bs-table-bg: var(--card-bg);
+    --bs-table-color: var(--text-primary);
+    --bs-table-striped-bg: var(--muted-bg);
+    --bs-table-striped-color: var(--text-primary);
+    --bs-table-hover-bg: var(--muted-bg);
+    --bs-table-hover-color: var(--text-primary);
+    --bs-table-border-color: var(--border-color);
+}
+
+/* type="file" input'unun OS-native "Dosya Sec" butonu arka plani CSS
+   background-color ile boyanamaz (tarayici kisiti); metin/cerceve rengi
+   webkit pseudo-element'i ile ayarlanir ki koyu temada okunabilsin. */
+[data-theme="dark"] input[type="file"].form-control::file-selector-button,
+[data-theme="dark"] input[type="file"].form-control::-webkit-file-upload-button {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .btn-light {

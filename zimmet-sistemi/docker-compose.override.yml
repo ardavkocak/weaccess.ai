@@ -37,4 +37,4 @@ services:
     # Port eslemesi yalnizca burada tanimlidir (docker-compose.yml'de yoktur).
     # Format: "host:konteyner" - 8000 doluysa sol tarafi degistirin, orn "8001:8000".
     ports:
-      - "8000:8000"
+      - "8001:8000"

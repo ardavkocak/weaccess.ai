@@ -54,9 +54,9 @@
                 <li><hr class="dropdown-divider m-0"></li>
                 {% for notification in navbar_notifications %}
                 <li>
-                    <div class="dropdown-item d-flex align-items-start gap-2 {% if not notification.is_read %}bg-light{% endif %}" style="white-space: normal;">
+                    <div class="dropdown-item d-flex align-items-start gap-2" style="white-space: normal; {% if not notification.is_read %}background-color: var(--info-bg);{% endif %}">
                         <i class="bi bi-{% if not notification.is_read %}circle-fill text-primary{% else %}circle text-muted{% endif %}" style="font-size: 0.5rem; margin-top: 0.4rem;"></i>
-                        <a href="{{ notification.link|default:'#' }}" class="text-decoration-none text-dark flex-grow-1 notification-mark-link" data-notification-id="{{ notification.pk }}">
+                        <a href="{{ notification.link|default:'#' }}" class="text-decoration-none flex-grow-1 notification-mark-link" style="color: var(--text-primary);" data-notification-id="{{ notification.pk }}">
                             <div class="small fw-semibold">{{ notification.title }}</div>
                             <div class="small text-muted">{{ notification.message }}</div>
                             <div class="small text-muted">{{ notification.created_at|timesince }} önce</div>

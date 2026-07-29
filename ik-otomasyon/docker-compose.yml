@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    image: ik-otomasyon:latest
+    container_name: c_ik-otomasyon_app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3002
+    ports:
+      - "3002:3002"

@@ -20,7 +20,11 @@ from django.views import View
 
 from .services import parser
 from .services.hesaplama import GUNLUK_SAAT, aylik_ozet
-from .services.resmi_tatiller import resmi_tatil_seti
+from .services.resmi_tatiller import RESMI_TATILLER, resmi_tatil_seti
+
+# Arayuzdeki yil secimi 2026-2028 ile sinirlidir (2025 resmi_tatiller.py'de
+# tanimli olsa da artik gecerli calisma donemi degil, dropdown'da gosterilmez).
+YIL_SECENEKLERI = [y for y in sorted(RESMI_TATILLER.keys()) if y >= 2026]
 
 PDF_TURLERI = {"application/pdf"}
 WORD_TURLERI = {
@@ -41,6 +45,7 @@ class DashboardView(LoginRequiredMixin, View):
         return render(request, "monthly_tracking/dashboard.html", {
             "ozet": None, "hata": None,
             "varsayilan_yil": today.year, "varsayilan_ay": today.month,
+            "yil_secenekleri": YIL_SECENEKLERI,
         })
 
     def post(self, request):
@@ -149,7 +154,8 @@ class DashboardView(LoginRequiredMixin, View):
         }
 
         return render(request, "monthly_tracking/dashboard.html", {
-            "ozet": ozet, "detay": detay, "hata": None, **context_ek,
+            "ozet": ozet, "detay": detay, "hata": None,
+            "yil_secenekleri": YIL_SECENEKLERI, **context_ek,
         })
 
     @staticmethod
@@ -158,6 +164,7 @@ class DashboardView(LoginRequiredMixin, View):
         context = {
             "ozet": None, "hata": mesaj,
             "varsayilan_yil": today.year, "varsayilan_ay": today.month,
+            "yil_secenekleri": YIL_SECENEKLERI,
         }
         context.update(ek_context or {})
         return render(request, "monthly_tracking/dashboard.html", context)

@@ -1,0 +1,49 @@
+# Ofis Portali - Docker Compose yapilandirmasi
+#
+# BU DOSYA GIT'E GIRER. Hicbir gizli deger icermez; yalnizca yapiyi tanimlar.
+# Degerler docker-compose.override.yml icindedir (.gitignore'da).
+#
+# Ilk kurulumda:  cp docker-compose.override.yml.example docker-compose.override.yml
+name: office-portal
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: c_office-portal-db
+    volumes:
+      - office_portal_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: c_office-portal-web
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      # ofis-gorev-takibi'nin SQLite dosyasi asagidaki volume ile ayni yola
+      # baglanir; router.py bu yolu okur (bkz. apps/office_bot/router.py).
+      # Dosya adi ofis-gorev-takibi/docker-compose.yml'deki DATABASE_FILE
+      # degeriyle (office-task-tracking.sqlite) birebir ayni olmalidir.
+      OFFICE_BOT_DB_PATH: /ofis-gorev-takibi-data/office-task-tracking.sqlite
+    volumes:
+      - .:/app
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
+      # ofis-gorev-takibi konteynerinin yazdigi ayni host klasoru: iki proje
+      # ayni SQLite dosyasini paylasir (bkz. ofis-gorev-takibi/docker-compose.yml
+      # -> ./ofis-data:/app/data).
+      - ../ofis-gorev-takibi/ofis-data:/ofis-gorev-takibi-data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  office_portal_postgres_data:
