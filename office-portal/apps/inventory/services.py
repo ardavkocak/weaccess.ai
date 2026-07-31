@@ -10,7 +10,6 @@ da kapatir.
 """
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.urls import reverse
 from django.utils import timezone
 
 from .models import ActivityLog, Assignment, Device, Notification
@@ -24,13 +23,6 @@ def log_activity(user, action_type, description, ip_address=None):
         description=description,
         ip_address=ip_address,
     )
-
-
-def notify_user(user, title, message, link=""):
-    """Bir kullaniciya bildirim olusturur. Kullanici None ise sessizce atlanir."""
-    if user is None:
-        return None
-    return Notification.objects.create(user=user, title=title, message=message, link=link)
 
 
 def notify_admins(title, message, link=""):
@@ -124,13 +116,6 @@ def assign_devices(
             ip_address,
         )
 
-    summary = ", ".join(f"{device} ({quantity} adet)" for device, quantity in merged_items)
-    notify_user(
-        employee.user,
-        "Yeni Zimmet Olusturuldu",
-        f"Uzerinize zimmetlendi: {summary}"[:255],
-        link=reverse("inventory:my-assignments"),
-    )
     return assignments
 
 
@@ -187,13 +172,5 @@ def return_device(
         ActivityLog.ActionType.RETURN,
         f"{device} cihazi {assignment.employee} tarafindan iade edildi.",
         ip_address,
-    )
-    # Cihaz detay sayfasi yalnizca adminlere acik oldugu icin personel kendi
-    # zimmet ekranina yonlendirilir.
-    notify_user(
-        assignment.employee.user,
-        "Cihaz Iadesi Alindi",
-        f"{device} cihazinin iadesi basariyla alindi.",
-        link=reverse("inventory:my-assignments"),
     )
     return assignment

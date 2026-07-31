@@ -10,6 +10,10 @@ class EmployeeForm(forms.Form):
     )
     is_active = forms.BooleanField(label="Aktif", required=False, initial=True, widget=forms.CheckboxInput(attrs={"class": "form-check-input"}))
     position = forms.CharField(label="Sıra No", required=False, widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Boş = sona ekle"}))
+    company = forms.CharField(
+        label="Şirket", required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Örn. Akıllı Çeviri"}),
+    )
 
 
 class MealUploadForm(forms.Form):

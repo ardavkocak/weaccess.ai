@@ -1,29 +1,23 @@
 """Yonetim paneli (dashboard) view'i.
 
-Admin rolundeki kullanicilar icin ozet istatistik kartlarini ve son zimmet
-kayitlarini gosterir. Personel rolundeki kullanicilar kendi zimmet ekranlarina
-yonlendirilir.
+Sistem tamamen admin odakli oldugu icin (personel girisi kaldirildi) bu sayfa
+dogrudan AdminRequiredMixin ile korunur; ozet istatistik kartlarini ve son
+zimmet kayitlarini gosterir.
 """
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
-from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import TemplateView
 
+from apps.inventory.mixins import AdminRequiredMixin
 from apps.inventory.models import Assignment, Company, Device, Employee
 
 
-class DashboardView(LoginRequiredMixin, TemplateView):
+class DashboardView(AdminRequiredMixin, TemplateView):
     # Office Portal'ın kendi Dashboard'u "dashboard/dashboard.html" adını
     # zaten kullandığı için bu şablon "zimmet/" altına taşındı (bkz.
     # office-portal/templates/zimmet/dashboard.html). Orijinal zimmet-sistemi
     # projesindeki dosya adı/yolu değişmedi, yalnızca bu kopyada değişti.
     template_name = "zimmet/dashboard.html"
-
-    def get(self, request, *args, **kwargs):
-        if not request.user.is_admin_role:
-            return redirect("inventory:my-assignments")
-        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

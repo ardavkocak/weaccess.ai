@@ -169,6 +169,7 @@ class EmployeeEditView(AdminRequiredMixin, View):
             "full_name": employee.full_name,
             "discord_user_id": employee.discord_user_id or "",
             "is_active": employee.is_active == 1,
+            "company": employee.company or "",
         })
         return render(request, "office_bot/employees.html", {
             "employees": employee_service.get_all(),
@@ -667,6 +668,9 @@ class MealTestActionsView(AdminRequiredMixin, View):
         if tracked:
             menu = _decorate_menu(meal_service.get_by_date(tracked["menu_date"]))
             participation = meal_vote_service.get_participation(tracked["menu_date"])
+            participation["yes_grouped"] = meal_vote_service.group_by_company(participation["yes"])
+            participation["no_grouped"] = meal_vote_service.group_by_company(participation["no"])
+            participation["pending_grouped"] = meal_vote_service.group_by_company(participation["pending"])
 
         return {
             "bot_configured": discord_client.is_configured(),
@@ -693,12 +697,19 @@ class MealTestParticipationApiView(AdminRequiredMixin, View):
 
         participation = meal_vote_service.get_participation(menu_date)
         closed = settings_service.get(MEAL_TRACKED_CLOSED_KEY) == "1"
+
+        def _slim_groups(entries):
+            return [
+                {"company": g["company"], "count": g["count"], "people": [{"name": p["name"]} for p in g["people"]]}
+                for g in meal_vote_service.group_by_company(entries)
+            ]
+
         return JsonResponse({
             "tracked": True,
             "menu_date": menu_date,
             "closed": closed,
-            "yes": [{"name": p["name"]} for p in participation["yes"]],
-            "no": [{"name": p["name"]} for p in participation["no"]],
-            "pending": [{"name": p["name"]} for p in participation["pending"]],
+            "yes": _slim_groups(participation["yes"]),
+            "no": _slim_groups(participation["no"]),
+            "pending": _slim_groups(participation["pending"]),
             "counts": participation["counts"],
         })

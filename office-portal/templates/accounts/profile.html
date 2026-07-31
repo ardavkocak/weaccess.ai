@@ -15,7 +15,7 @@
                 {% endif %}
                 <h5 class="mb-0">{{ request.user.get_full_name|default:request.user.username }}</h5>
                 <p class="text-muted mb-1">{{ request.user.email }}</p>
-                <span class="pill-badge pill-{% if request.user.is_admin_role %}info{% else %}muted{% endif %}">
+                <span class="pill-badge pill-info">
                     {{ request.user.get_role_display }}
                 </span>
                 {% if employee %}

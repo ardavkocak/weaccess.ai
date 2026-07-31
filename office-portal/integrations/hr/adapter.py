@@ -15,11 +15,12 @@ class HrIntegration(BaseIntegration):
         tech_stack="Django (Portal ile aynı süreç, PostgreSQL)",
         planned_mode="native_port",
         notes=(
-            "Excel okuma, tarih kurallari (dogum gunu/yil donumu) ve "
+            "PDF okuma, tarih kurallari (dogum gunu/yil donumu) ve "
             "hatirlatma mantigi Python'a portlanip apps.hr icinde native "
-            "olarak calisiyor. Gunluk hatirlatma e-postasi icin "
-            "'send_hr_reminders' management komutu OS cron/systemd "
-            "timer ile is gunlerinde 09:00'da calistirilmali."
+            "olarak calisiyor. Gunluk hatirlatma kontrolu, ayrica bir OS "
+            "cron/systemd timer GEREKTIRMEDEN, uygulama sureci icinde "
+            "calisan bir arka plan zamanlayici (bkz. apps.hr.scheduler) "
+            "tarafindan her gun saat 10:00 civarinda otomatik yapiliyor."
         ),
     )
 

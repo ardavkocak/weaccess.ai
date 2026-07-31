@@ -4,6 +4,29 @@ from __future__ import annotations
 from ..models import Employee, MealVote
 from .date_utils import today_iso
 
+# Employee.company alani bos birakilmis (henuz elle doldurulmamis) ya da
+# Employee kaydi hic bulunamayan (bilinmeyen Discord ID'den gelen dis oy)
+# katilimcilar icin.
+UNASSIGNED_COMPANY = "Diğer"
+
+
+def group_by_company(entries: list[dict]) -> list[dict]:
+    """
+    Bir katilim listesini (yes/no/pending) 'company' alanina gore gruplar.
+    Sirket adi ALFABETIK sirada gelir (Diger her zaman en sonda); yeni bir
+    sirket Employee.company alanina elle girildiginde kod degismeden
+    otomatik ortaya cikar (bkz. apps/office_bot/employees.html formu).
+    """
+    buckets: dict[str, list[dict]] = {}
+    for entry in entries:
+        buckets.setdefault(entry.get("company", UNASSIGNED_COMPANY), []).append(entry)
+
+    ordered_companies = sorted(buckets, key=lambda c: (c == UNASSIGNED_COMPANY, c))
+    return [
+        {"company": company, "count": len(buckets[company]), "people": buckets[company]}
+        for company in ordered_companies
+    ]
+
 
 def is_open(menu_date: str) -> bool:
     """
@@ -37,6 +60,7 @@ def get_participation(menu_date):
             "discord_user_id": vote.discord_user_id,
             "is_external": employee is None,
             "updated_at": vote.updated_at,
+            "company": (employee.company if employee else None) or UNASSIGNED_COMPANY,
         }
 
     yes = [to_entry(v) for v in votes if v.choice == "yes"]
@@ -51,6 +75,7 @@ def get_participation(menu_date):
                 "name": employee.full_name,
                 "discord_user_id": employee.discord_user_id,
                 "has_no_discord_id": not employee.discord_user_id,
+                "company": employee.company or UNASSIGNED_COMPANY,
             })
 
     return {

@@ -20,18 +20,37 @@ def move_weekend_reminder_to_friday(d: date) -> date:
     return d
 
 
-def birthday_reminder_date(year: int, month: int) -> date:
+def reminder_trigger_date(year: int, month: int) -> date:
+    """
+    Doğum günü + iş yıldönümü hatırlatmasının BİRLİKTE gönderileceği tarih:
+    ayın son cumasından 2 gün önce (hafta sonuna denk gelirse cumaya çekilir).
+    Bu iki hatırlatma artık TEK bir e-postada birleştiği için tetikleme
+    tarihi de tektir (bkz. reminder_service.run_daily_reminders).
+    """
     return move_weekend_reminder_to_friday(last_friday(year, month) - timedelta(days=2))
 
 
-def anniversary_date(hire_date: date, year: int) -> date:
-    if hire_date.month == 2 and hire_date.day == 29:
-        try:
-            return date(year, 2, 29)
-        except ValueError:
-            return date(year, 2, 28)
-    return date(year, hire_date.month, hire_date.day)
+def next_month(year: int, month: int) -> tuple[int, int]:
+    """Verilen ay/yıldan bir SONRAKİ ayı (yıl taşması dahil) döner."""
+    if month == 12:
+        return year + 1, 1
+    return year, month + 1
 
 
-def anniversary_reminder_date(anniversary: date) -> date:
-    return move_weekend_reminder_to_friday(anniversary - timedelta(days=2))
+def upcoming_trigger_date(today=None) -> date:
+    """
+    Bir SONRAKİ otomatik hatırlatmanın gönderileceği tarih (panelde
+    "Sonraki Otomatik Hatırlatma" bilgisi için).
+
+    Bu ayın tetikleme tarihi bugünden ileriyse (veya tam bugünse — o zaman
+    otomasyon bugün henüz çalışmamış demektir) o tarih kullanılır; geçmişse
+    bir sonraki ayın tetikleme tarihine bakılır. Böylece ay sonu/başı
+    geçişlerinde de her zaman GERÇEKTEN gelecekteki (veya bugünkü) doğru
+    tarih gösterilir, geçmiş bir tarih asla gösterilmez.
+    """
+    today = today or date.today()
+    candidate = reminder_trigger_date(today.year, today.month)
+    if candidate < today:
+        year, month = next_month(today.year, today.month)
+        candidate = reminder_trigger_date(year, month)
+    return candidate

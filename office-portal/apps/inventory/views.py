@@ -3,7 +3,6 @@ from functools import partial
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db.models import ProtectedError, Q
 from django.http import (
@@ -19,7 +18,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView, View
 
-from common.utils import generate_employee_password, get_client_ip
+from common.utils import get_client_ip
 
 from . import pdf, services
 from .forms import (
@@ -194,12 +193,11 @@ class EmployeeCreateView(AdminRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        """Calisani kaydeder ve olusan giris bilgilerini admine gosterir.
-
-        Hesabin kendisini Employee post_save sinyali olusturur; boylece kural
-        bu ekrana bagli kalmaz. Sifre adin deterministik bir turevi oldugundan
-        (ad + 123) mesajda gosterilmek uzere yeniden hesaplanabilir; hicbir yerde
-        duz metin olarak saklanmaz.
+        """
+        Calisani kaydeder. Sistem tamamen admin odakli oldugu icin (personel
+        girisi kaldirildi) calisanlar icin artik otomatik giris hesabi
+        olusturulmaz — Employee kaydi yalnizca zimmet/Yemek Sistemi/IK
+        otomasyonu gibi is mantigi icin kullanilir.
         """
         response = super().form_valid(form)
         self.object.refresh_from_db()
@@ -209,22 +207,7 @@ class EmployeeCreateView(AdminRequiredMixin, CreateView):
             f"{self.object.full_name} sisteme yeni calisan olarak eklendi.",
             link=self.object.get_absolute_url(),
         )
-        user = self.object.user
-        if user is not None:
-            services.log_activity(
-                self.request.user,
-                ActivityLog.ActionType.CREATE,
-                f"{self.object.full_name} icin otomatik kullanici hesabi olusturuldu ({user.username}).",
-                ip_address=get_client_ip(self.request),
-            )
-            messages.success(
-                self.request,
-                f"Calisan olusturuldu. Giris bilgileri — Kullanici adi: {user.username} · "
-                f"Baslangic sifresi: {generate_employee_password(self.object.first_name)} · "
-                f"Calisan ilk giriste kendi sifresini belirleyecek.",
-            )
-        else:
-            messages.success(self.request, "Calisan basariyla olusturuldu.")
+        messages.success(self.request, "Calisan basariyla olusturuldu.")
         return response
 
 
@@ -541,58 +524,6 @@ class AssignmentDeleteView(AdminRequiredMixin, DeleteView):
 
 
 # ---------------------------------------------------------------------------
-# Personel Ekrani: Kendi Cihazlarim / Zimmet Gecmisim
-# ---------------------------------------------------------------------------
-@login_required
-def my_assignments_view(request):
-    """Personelin kendi zimmetli cihazlarini ve gecmis zimmet kayitlarini gorebildigi sayfa."""
-    employee = getattr(request.user, "employee_profile", None)
-    active_assignments = []
-    history_assignments = []
-    if employee:
-        active_assignments = employee.assignments.filter(returned=False).select_related("device")
-        history_assignments = employee.assignments.filter(returned=True).select_related("device")
-
-    context = {
-        "employee": employee,
-        "active_assignments": active_assignments,
-        "history_assignments": history_assignments,
-    }
-    return render(request, "inventory/my_assignments.html", context)
-
-
-class AvailableDeviceListView(LoginRequiredMixin, ListView):
-    """Personelin stokta bosta bulunan cihazlari goruntuledigi bilgilendirme sayfasi.
-
-    Sayfa tamamen SALT OKUNURDUR ve yalnizca GET kabul eder: buradan zimmet
-    olusturulamaz, zimmet istegi gonderilemez, cihaz duzenlenemez/silinemez ve
-    stok degistirilemez. Tum yonetim islemleri AdminRequiredMixin ile korunan
-    admin ekranlarinda kalir.
-
-    "Bosta" olcutu dashboard'daki "Bostaki Urun" sayacoyla ayni tanimi kullanir:
-    toplam adedi zimmetteki adedinden fazla olan, yani en az bir adedi bos duran
-    cihazlar listelenir.
-    """
-
-    model = Device
-    template_name = "inventory/available_devices.html"
-    context_object_name = "devices"
-    paginate_by = PAGE_SIZE
-
-    def get_queryset(self):
-        qs = Device.objects.with_available_stock().order_by("name")
-        self.search_form = DeviceSearchForm(self.request.GET)
-        if self.search_form.is_valid() and self.search_form.cleaned_data.get("q"):
-            qs = qs.filter(name__icontains=self.search_form.cleaned_data["q"])
-        return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["search_form"] = self.search_form
-        return context
-
-
-# ---------------------------------------------------------------------------
 # Bildirimler
 # ---------------------------------------------------------------------------
 @login_required
@@ -650,20 +581,19 @@ def global_search_api(request):
                 }
             )
 
-        if request.user.is_admin_role:
-            employees = Employee.objects.select_related("company").filter(
-                Q(first_name__icontains=query) | Q(last_name__icontains=query) | Q(email__icontains=query)
-            )[:5]
-            for employee in employees:
-                results.append(
-                    {
-                        "type": "Calisan",
-                        "icon": "bi-person",
-                        "title": employee.full_name,
-                        "subtitle": employee.company.name,
-                        "url": employee.get_absolute_url(),
-                    }
-                )
+        employees = Employee.objects.select_related("company").filter(
+            Q(first_name__icontains=query) | Q(last_name__icontains=query) | Q(email__icontains=query)
+        )[:5]
+        for employee in employees:
+            results.append(
+                {
+                    "type": "Calisan",
+                    "icon": "bi-person",
+                    "title": employee.full_name,
+                    "subtitle": employee.company.name,
+                    "url": employee.get_absolute_url(),
+                }
+            )
 
     return JsonResponse({"results": results})
 
@@ -674,7 +604,7 @@ def _admin_required(request):
         return redirect(f"{reverse_lazy('accounts:login')}?next={request.path}")
     if not request.user.is_admin_role:
         messages.error(request, "Bu islem icin yetkiniz bulunmuyor.")
-        return redirect("inventory:my-assignments")
+        return redirect("dashboard:home")
     return None
 
 

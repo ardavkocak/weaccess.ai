@@ -6,12 +6,10 @@
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Banka Sayfasını Tara ve Google Sheets'e Aktar</span>
-        {% if request.user.is_admin_role %}
         <a href="{% url 'documentation:settings' %}" class="btn btn-sm btn-outline-secondary"
            title="Google Sheets bağlantı ayarları" data-bs-toggle="tooltip">
             <i class="bi bi-gear"></i>
         </a>
-        {% endif %}
     </div>
     <div class="card-body">
         <form method="post" class="row g-3">

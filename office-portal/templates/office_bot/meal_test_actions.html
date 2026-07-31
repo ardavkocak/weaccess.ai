@@ -129,23 +129,14 @@
                 <p class="text-muted small mb-0">Menü gönderildiğinde katılım burada görünecek.</p>
                 {% else %}
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="fw-semibold small mb-2">✅ Yiyecekler (<span data-count="yes">{{ participation.counts.yes }}</span>)</div>
-                        <ul class="list-group list-group-flush" data-list="yes">
-                            {% for p in participation.yes %}<li class="list-group-item small">{{ p.name }}</li>{% empty %}<li class="list-group-item small text-muted">—</li>{% endfor %}
-                        </ul>
+                    <div class="col-md-4" id="participation-col-yes">
+                        {% include "office_bot/_participation_accordion.html" with section_key="yes" icon="✅" label="Yiyecekler" count_key="yes" count=participation.counts.yes groups=participation.yes_grouped %}
                     </div>
-                    <div class="col-md-4">
-                        <div class="fw-semibold small mb-2">❌ Yemeyecekler (<span data-count="no">{{ participation.counts.no }}</span>)</div>
-                        <ul class="list-group list-group-flush" data-list="no">
-                            {% for p in participation.no %}<li class="list-group-item small">{{ p.name }}</li>{% empty %}<li class="list-group-item small text-muted">—</li>{% endfor %}
-                        </ul>
+                    <div class="col-md-4" id="participation-col-no">
+                        {% include "office_bot/_participation_accordion.html" with section_key="no" icon="❌" label="Yemeyecekler" count_key="no" count=participation.counts.no groups=participation.no_grouped %}
                     </div>
-                    <div class="col-md-4">
-                        <div class="fw-semibold small mb-2">⏳ Henüz Oy Vermeyenler (<span data-count="pending">{{ participation.counts.pending }}</span>)</div>
-                        <ul class="list-group list-group-flush" data-list="pending">
-                            {% for p in participation.pending %}<li class="list-group-item small">{{ p.name }}</li>{% empty %}<li class="list-group-item small text-muted">—</li>{% endfor %}
-                        </ul>
+                    <div class="col-md-4" id="participation-col-pending">
+                        {% include "office_bot/_participation_accordion.html" with section_key="pending" icon="⏳" label="Cevap Vermeyenler" count_key="pending" count=participation.counts.pending groups=participation.pending_grouped %}
                     </div>
                 </div>
                 {% endif %}
@@ -160,14 +151,47 @@
     const url = "{% url 'office_bot:meal_test_participation_api' %}";
     const updatedLabel = document.getElementById('participation-updated');
 
-    function renderList(name, items) {
-        const list = document.querySelector(`[data-list="${name}"]`);
-        const countEl = document.querySelector(`[data-count="${name}"]`);
-        if (!list || !countEl) return;
-        countEl.textContent = items.length;
-        list.innerHTML = items.length
-            ? items.map((p) => `<li class="list-group-item small">${p.name}</li>`).join('')
-            : '<li class="list-group-item small text-muted">—</li>';
+    function renderGroups(sectionKey, groups, totalCount) {
+        const container = document.querySelector(`[data-group="${sectionKey}"]`);
+        const countEl = document.querySelector(`[data-count="${sectionKey}"]`);
+        if (!container || !countEl) return;
+        countEl.textContent = totalCount;
+
+        // Kullanıcının o an açık/kapalı bıraktığı şirket panellerini hatırla,
+        // yeniden çizince (her 4sn'de bir) sıfırlanıp tekrar açılmasınlar.
+        const openState = {};
+        container.querySelectorAll('.accordion-collapse').forEach((el) => {
+            openState[el.dataset.company] = el.classList.contains('show');
+        });
+
+        if (!groups.length) {
+            container.innerHTML = '<p class="text-muted small mb-0">—</p>';
+            return;
+        }
+
+        container.innerHTML = groups.map((group, index) => {
+            const isOpen = Object.prototype.hasOwnProperty.call(openState, group.company)
+                ? openState[group.company]
+                : true;
+            const collapseId = `${sectionKey}-company-${index + 1}`;
+            const peopleHtml = group.people.length
+                ? group.people.map((p) => `<li class="list-group-item small">${p.name}</li>`).join('')
+                : '<li class="list-group-item small text-muted">—</li>';
+            return `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button py-2 px-2 small${isOpen ? '' : ' collapsed'}" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                            📁 ${group.company} (${group.count})
+                        </button>
+                    </h2>
+                    <div id="${collapseId}" class="accordion-collapse collapse${isOpen ? ' show' : ''}" data-company="${group.company}">
+                        <div class="accordion-body p-2">
+                            <ul class="list-group list-group-flush">${peopleHtml}</ul>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
     }
 
     async function refresh() {
@@ -176,9 +200,9 @@
             if (!resp.ok) return;
             const data = await resp.json();
             if (!data.tracked) return;
-            renderList('yes', data.yes);
-            renderList('no', data.no);
-            renderList('pending', data.pending);
+            renderGroups('yes', data.yes, data.counts.yes);
+            renderGroups('no', data.no, data.counts.no);
+            renderGroups('pending', data.pending, data.counts.pending);
             updatedLabel.textContent = 'Güncellendi: ' + new Date().toLocaleTimeString('tr-TR');
         } catch (e) {
             // Sessizce geç: bir sonraki denemede tekrar dener.

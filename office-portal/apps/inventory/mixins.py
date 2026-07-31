@@ -21,10 +21,13 @@ class HtmlDateInput(forms.DateInput):
 
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """Sayfaya yalnizca 'admin' rolundeki kullanicilarin erisimine izin verir.
+    """
+    Sayfaya yalnizca 'admin' rolundeki kullanicilarin erisimine izin verir.
 
-    Personel rolundeki bir kullanici bu sayfalara erismeye calisirsa
-    yetkisiz oldugunu belirten bir mesajla kendi ozet sayfasina yonlendirilir.
+    Sistem artik tamamen admin odakli oldugu icin (bkz. accounts.CustomLoginView)
+    admin olmayan biri hicbir zaman oturum acamaz; bu kontrol yine de savunma
+    amacli korunur (orn. rolu sonradan degistirilen, halihazirda oturumu acik
+    bir hesap gibi kenar durumlar icin).
     """
 
     def test_func(self):
@@ -33,7 +36,7 @@ class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def handle_no_permission(self):
         if self.request.user.is_authenticated:
             messages.error(self.request, "Bu sayfaya erisim yetkiniz bulunmuyor.")
-            return redirect("inventory:my-assignments")
+            return redirect("dashboard:home")
         return super().handle_no_permission()
 
 

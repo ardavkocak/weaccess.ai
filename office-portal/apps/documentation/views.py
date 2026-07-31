@@ -11,10 +11,10 @@ from __future__ import annotations
 import os
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
 from django.views import View
+
+from apps.inventory.mixins import AdminRequiredMixin
 
 from . import scraper
 from .models import SheetsSettings
@@ -43,7 +43,7 @@ def _servis_hesabi_tanimli_mi():
     return os.path.exists(servis_hesabi)
 
 
-class DashboardView(LoginRequiredMixin, View):
+class DashboardView(AdminRequiredMixin, View):
     def get(self, request):
         return render(request, "documentation/dashboard.html", {"sonuc": None, "hata": None})
 
@@ -91,17 +91,8 @@ class DashboardView(LoginRequiredMixin, View):
         return render(request, "documentation/dashboard.html", {"sonuc": sonuc, "hata": hata})
 
 
-class SettingsView(LoginRequiredMixin, UserPassesTestMixin, View):
-    """Google Sheets baglanti ayarlari (URL + servis hesabi JSON).
-
-    Bu bilgiler bir Google service account private key'i icerdigi icin
-    yalnizca Yonetici rolundeki kullanicilar erisebilir.
-    """
-
-    login_url = reverse_lazy("accounts:login")
-
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_admin_role
+class SettingsView(AdminRequiredMixin, View):
+    """Google Sheets baglanti ayarlari (URL + servis hesabi JSON)."""
 
     def get(self, request):
         ayar = SheetsSettings.get_solo()

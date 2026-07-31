@@ -14,6 +14,10 @@ class Employee(models.Model):
     is_active = models.IntegerField(default=1, db_column="is_active")
     position = models.IntegerField(db_column="position")
     created_at = models.CharField(max_length=32, db_column="created_at", blank=True)
+    # Elle girilen sirket adi — Yemek Sistemi katilim listelerini buna gore
+    # gruplar (bkz. meal_vote_service.py). Sabit bir secenek listesi YOK,
+    # serbest metin: yeni bir sirket eklemek icin kod degismesi gerekmez.
+    company = models.CharField(max_length=100, null=True, blank=True, db_column="company")
 
     class Meta:
         managed = False

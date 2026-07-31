@@ -3,66 +3,151 @@
 {% block page_title %}İK Otomasyonu{% endblock %}
 {% block content %}
 
-<div class="row g-3 mb-4">
-    <div class="col-12 col-lg-7">
-        <div class="card h-100">
-            <div class="card-header">Çalışan Dosyasını Yükle</div>
-            <div class="card-body">
-                <p class="text-muted small">Excel'deki (.xlsx/.csv) ilk satır sütun başlığı olarak korunur; tüm satırlar tabloya aktarılır. Beklenen sütunlar: <strong>Ad Soyad</strong>, <strong>Doğum Tarihi</strong>, <strong>İşe Giriş Tarihi</strong>.</p>
-                <form method="post" action="{% url 'hr:upload' %}" enctype="multipart/form-data" class="d-flex gap-2 flex-wrap">
-                    {% csrf_token %}
-                    <input type="file" name="excel" accept=".xlsx,.csv" class="form-control" style="max-width: 320px;" required>
-                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-upload"></i> Yükle ve Tabloyu Oluştur</button>
-                </form>
-            </div>
-        </div>
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+        <div class="card hero-stat-card h-100"><div class="card-body">
+            <div class="stat-value">{{ summary.total }}</div>
+            <div class="stat-label">Kayıtlı Çalışan</div>
+        </div></div>
     </div>
-    <div class="col-12 col-lg-5">
-        <div class="card h-100" style="background-color: var(--brand-primary); color: #fff;">
-            <div class="card-body">
-                <p class="mb-1 opacity-75 small">Kayıtlı çalışan</p>
-                <p class="display-6 fw-bold mb-2">{{ employees|length }}</p>
-                <form method="post" action="{% url 'hr:test_reminders' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-light btn-sm">İK e-postasını test et</button>
-                </form>
+    <div class="col-6 col-lg-3">
+        <div class="card hero-stat-card h-100"><div class="card-body">
+            <div class="stat-value">{{ summary.birthdays_this_month }}</div>
+            <div class="stat-label">Bu Ay Doğum Günü</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card hero-stat-card h-100"><div class="card-body">
+            <div class="stat-value">{{ summary.anniversaries_this_month }}</div>
+            <div class="stat-label">Bu Ay İş Yıldönümü</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card hero-stat-card h-100"><div class="card-body">
+            <div class="stat-value" style="font-size: 1.1rem;">
+                {% if summary.last_reminder_sent_at %}{{ summary.last_reminder_sent_at|date:"d.m.Y" }}{% else %}—{% endif %}
             </div>
-        </div>
+            <div class="stat-label">Son Bildirim Tarihi</div>
+        </div></div>
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
+<div class="card mb-3">
+    <div class="card-header">Çalışan Listesi PDF'i Yükle</div>
+    <div class="card-body">
+        <p class="text-muted small">
+            PDF'ten otomatik okunacak alanlar: <strong>Ad Soyad</strong>, <strong>Departman</strong>, <strong>Rol/Unvan</strong>,
+            <strong>İşe Giriş Tarihi</strong>, <strong>Çalışma Modeli</strong>, <strong>Doğum Tarihi</strong>,
+            <strong>Kan Grubu</strong>, <strong>Alerji Bilgisi</strong>. Sütun sırası/isimleri farklı olan PDF'ler de
+            desteklenir (birden fazla okuma motoru otomatik denenir). Yeni bir dosya yüklemek mevcut listenin yerine geçer.
+        </p>
+        <form method="post" action="{% url 'hr:upload' %}" enctype="multipart/form-data" class="d-flex gap-2 flex-wrap">
+            {% csrf_token %}
+            <input type="file" name="pdf" accept=".pdf" class="form-control" style="max-width: 320px;" required>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-upload"></i> Yükle</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <span>Çalışan Listesi</span>
-        <span class="pill-badge pill-info">{{ headers|length }} sütun · {{ employees|length }} kayıt</span>
+        <form method="get" class="d-flex gap-2">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="dir" value="{{ dir }}">
+            <input type="search" name="q" value="{{ query }}" class="form-control form-control-sm" placeholder="Ad soyad ara..." style="width: 220px;">
+            <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search"></i></button>
+        </form>
     </div>
     <div class="table-responsive">
-        {% if headers %}
-        <table class="table table-modern mb-0">
-            <thead><tr>{% for header in headers %}<th>{{ header }}</th>{% endfor %}</tr></thead>
+        {% if employees %}
+        <table class="table table-modern mb-0 align-middle">
+            <thead>
+                <tr>
+                    {% for col_key, col_label in sort_columns %}
+                    <th>
+                        <a href="?q={{ query }}&sort={{ col_key }}&dir={% if sort == col_key and dir == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-reset">
+                            {{ col_label }}
+                            {% if sort == col_key %}<i class="bi {% if dir == 'asc' %}bi-caret-up-fill{% else %}bi-caret-down-fill{% endif %}"></i>{% endif %}
+                        </a>
+                    </th>
+                    {% endfor %}
+                    <th>Çalışma Modeli</th>
+                    <th>Alerji Bilgisi</th>
+                    <th>Güven</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for employee in employees %}
-                <tr>{% for value in employee.values %}<td>{{ value }}</td>{% endfor %}</tr>
+                <tr>
+                    <td>{{ employee.full_name }}</td>
+                    <td>{{ employee.department|default:"—" }}</td>
+                    <td>{{ employee.role|default:"—" }}</td>
+                    <td>{{ employee.hire_date|date:"d.m.Y"|default:"—" }}</td>
+                    <td>{{ employee.birth_date|date:"d.m.Y"|default:"—" }}</td>
+                    <td>{{ employee.blood_type|default:"—" }}</td>
+                    <td>{{ employee.work_model|default:"—" }}</td>
+                    <td>
+                        {% if employee.allergy_info %}
+                        <span class="pill-badge pill-warning">{{ employee.allergy_info }}</span>
+                        {% else %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if employee.import_confidence is not None %}
+                        <span class="pill-badge {% if employee.import_confidence < 80 %}pill-danger{% else %}pill-success{% endif %}">
+                            %{{ employee.import_confidence }}
+                        </span>
+                        {% else %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
         {% else %}
-        <div class="text-center text-muted py-5">Başlamak için bir çalışan Excel dosyası yükleyin.</div>
+        <div class="text-center text-muted py-5">
+            {% if query %}"{{ query }}" ile eşleşen çalışan bulunamadı.{% else %}Başlamak için bir çalışan PDF'i yükleyin.{% endif %}
+        </div>
         {% endif %}
     </div>
 </div>
 
 <div class="card">
-    <div class="card-header">E-posta Bildirim Ayarları</div>
+    <div class="card-header">Bildirim Ayarları</div>
     <div class="card-body">
         <form method="post" action="{% url 'hr:settings' %}" class="row g-3">
             {% csrf_token %}
+
+            <div class="col-md-4">
+                <label class="form-label">Bildirim Açık/Kapalı</label>
+                <div class="form-check form-switch mt-2">
+                    <input type="checkbox" class="form-check-input" role="switch" id="notificationsEnabled" name="notificationsEnabled" {% if settings.notifications_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="notificationsEnabled">{% if settings.notifications_enabled %}Açık{% else %}Kapalı{% endif %}</label>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Bildirim Gönderilecek E-posta</label>
+                <input name="notificationEmail" class="form-control" value="{{ settings.notification_email }}" placeholder="ik@sirket.com">
+            </div>
+
+            <div class="col-12">
+                <span class="text-muted small">
+                    <i class="bi bi-clock-history"></i>
+                    Sonraki Otomatik Hatırlatma: {{ next_trigger_date|date:"d.m.Y l" }} - 09:00
+                </span>
+            </div>
+
+            <div class="col-12"><hr class="my-1"></div>
+
             <div class="col-md-6">
                 <label class="form-label">Gönderen e-posta</label>
                 <input name="senderEmail" class="form-control" value="{{ settings.sender_email }}">
             </div>
             <div class="col-md-6">
-                <label class="form-label">Alıcı e-postaları</label>
+                <label class="form-label">Ek alıcı e-postaları (isteğe bağlı)</label>
                 <textarea name="recipientEmails" rows="1" class="form-control">{{ settings.recipient_emails|join:", " }}</textarea>
             </div>
             <div class="col-md-4">
@@ -92,9 +177,17 @@
                 <label class="form-label">E-posta From adresi</label>
                 <input name="mailFrom" class="form-control" value="{{ settings.mail_from }}">
             </div>
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary btn-sm">Kaydet</button>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Kaydet</button>
             </div>
+        </form>
+
+        <hr>
+        <form method="post" action="{% url 'hr:send_this_month_reminder' %}" class="d-flex align-items-center flex-wrap gap-2">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-warning btn-sm"><i class="bi bi-lightning-charge"></i> 🧪 Bu Ayın Hatırlatmasını Şimdi Gönder</button>
+            <span class="text-muted small">Gerçek otomasyonla AYNI algoritmayı, gerçek tetikleme tarihini simüle ederek şimdi çalıştırır. Çalışan kayıtlarını, bildirim geçmişini ve zamanlayıcıyı etkilemez.</span>
         </form>
     </div>
 </div>

@@ -62,7 +62,6 @@ class Command(BaseCommand):
             admin_user = self._create_admin()
             companies = self._create_companies()
             employees = self._create_employees(companies)
-            self._create_staff_accounts(employees)
             devices = self._create_devices()
             self._create_assignments(employees, devices, admin_user)
 
@@ -144,24 +143,6 @@ class Command(BaseCommand):
             if value not in used_tc_numbers:
                 used_tc_numbers.add(value)
                 return value
-
-    def _create_staff_accounts(self, employees, count=8):
-        for employee in random.sample(employees, min(count, len(employees))):
-            username = employee.email.split("@")[0]
-            user, created = User.objects.get_or_create(
-                username=username,
-                defaults={
-                    "email": employee.email,
-                    "first_name": employee.first_name,
-                    "last_name": employee.last_name,
-                    "role": User.Role.STAFF,
-                },
-            )
-            if created:
-                user.set_password("Personel12345!")
-                user.save()
-            employee.user = user
-            employee.save(update_fields=["user"])
 
     def _create_devices(self):
         return [

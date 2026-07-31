@@ -63,10 +63,12 @@ def validate(data, exclude_id=None):
 
     is_active_raw = data.get("is_active")
     is_active = 1 if is_active_raw in ("on", True, "1", 1) else 0
+    company = str(data.get("company") or "").strip()
     return [], {
         "full_name": full_name,
         "discord_user_id": discord_user_id or None,
         "is_active": is_active,
+        "company": company or None,
     }
 
 
@@ -99,6 +101,7 @@ def create(data, position=None):
         discord_user_id=data["discord_user_id"],
         is_active=data["is_active"],
         position=target,
+        company=data["company"],
     )
     return employee
 
@@ -108,6 +111,7 @@ def update(employee_id, data):
         full_name=data["full_name"],
         discord_user_id=data["discord_user_id"],
         is_active=data["is_active"],
+        company=data["company"],
     )
     return get_by_id(employee_id)
 

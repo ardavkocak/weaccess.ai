@@ -28,13 +28,30 @@ def clear_must_change_password(user):
 
 
 class CustomLoginView(LoginView):
-    """Kullanici adi/e-posta ile giris; role gore yonlendirme ve 'beni hatirla' destegi."""
+    """
+    Giris ekrani — SADECE admin rolundeki hesaplar oturum acabilir.
+
+    Kimlik bilgileri (e-posta/sifre) dogru olsa bile kullanici admin degilse
+    oturum hic baslatilmaz (super().form_valid() hic cagrilmaz, yani
+    django.contrib.auth.login() calismaz) — sadece net bir hata mesaji
+    gosterilir. Personel/staff rolu icin ayri bir panel veya yonlendirme
+    artik yok; sistem tamamen admin odaklidir.
+    """
 
     template_name = "registration/login.html"
     authentication_form = LoginForm
     redirect_authenticated_user = True
 
     def form_valid(self, form):
+        user = form.get_user()
+        if not user.is_admin_role:
+            # messages framework login sayfasinda GORUNTULENMEZ (login.html yalnizca
+            # form.non_field_errors'i basar, bkz. sablon) — bu yuzden hata dogrudan
+            # forma eklenir; boylece hem hemen gorunur hem de "yanlis sifre" hatasiyla
+            # AYNI mekanizmayi kullanir ve bir sonraki (basarili) oturuma sizmaz.
+            form.add_error(None, "Bu sisteme erişim yetkiniz bulunmamaktadır.")
+            return self.form_invalid(form)
+
         response = super().form_valid(form)
         if not form.cleaned_data.get("remember_me"):
             self.request.session.set_expiry(0)
@@ -42,10 +59,7 @@ class CustomLoginView(LoginView):
         return response
 
     def get_success_url(self):
-        user = self.request.user
-        if user.is_admin_role:
-            return reverse_lazy("dashboard:home")
-        return reverse_lazy("inventory:my-assignments")
+        return reverse_lazy("dashboard:home")
 
 
 class CustomLogoutView(LogoutView):

@@ -12,10 +12,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # postgresql-client: entrypoint'teki pg_isready icin.
-# tesseract-ocr(-tur): apps.monthly_tracking (Aylik Takip) pytesseract ile
-# izin gorsellerini okur; bu sistem paketi olmadan calisma zamaninda hata verir.
+# tesseract-ocr(-tur): apps.monthly_tracking (Aylik Takip) VE apps.hr (IK PDF
+# parser OCR asamasi) pytesseract ile gorselleri okur.
+# ghostscript: camelot'un tablo algilama motoru (lattice/stream) icin sart.
+# default-jre-headless: tabula-py, PDFBox tabanli Java jar'ini calistirir.
+# poppler-utils: pdf2image, PDF sayfalarini OCR icin gorsele cevirirken kullanir.
+# libgl1: camelot'un opencv (cv2) bagimliligi bu paylasimli kutuphaneyi arar.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends postgresql-client tesseract-ocr tesseract-ocr-tur \
+    && apt-get install -y --no-install-recommends \
+        postgresql-client tesseract-ocr tesseract-ocr-tur \
+        ghostscript default-jre-headless poppler-utils libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY docker-entrypoint.sh .

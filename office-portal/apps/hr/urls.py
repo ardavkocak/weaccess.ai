@@ -7,7 +7,7 @@ app_name = "hr"
 
 urlpatterns = [
     path("", views.DashboardView.as_view(), name="dashboard"),
-    path("excel-yukle/", views.UploadView.as_view(), name="upload"),
+    path("pdf-yukle/", views.UploadView.as_view(), name="upload"),
     path("ayarlar/", views.SettingsView.as_view(), name="settings"),
-    path("hatirlatmalari-test-et/", views.TestReminderView.as_view(), name="test_reminders"),
+    path("bu-ayin-hatirlatmasini-gonder/", views.SendThisMonthReminderView.as_view(), name="send_this_month_reminder"),
 ]

@@ -93,6 +93,22 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
+# apps.hr.scheduler gibi arka plan bilesenlerinin INFO seviyeli loglari
+# (orn. "zamanlayici baslatildi", "hatirlatma gonderildi") varsayilan olarak
+# hicbir yere yazilmaz (Django'nun ontanimli logging'i yalniz WARNING+ icin
+# bir "son care" handler'i kullanir). Bu yuzden konsola (gunicorn --error-logfile -
+# ile docker loglarina) INFO seviyesinde basan minimal bir logging konfigurasyonu:
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "hr": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}
+
 # Portal icin izole PostgreSQL veritabani (bkz. modul docstring'i).
 DATABASES = {
     "default": {

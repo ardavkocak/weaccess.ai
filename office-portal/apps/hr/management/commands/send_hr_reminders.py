@@ -1,12 +1,14 @@
 """
 Gunluk IK hatirlatmalarini gonderir.
 
-Orijinal proje bunu kendi surecinde node-cron ile ('0 9 * * 1-5' — is
-gunlerinde 09:00) yapiyordu. Django/WSGI'nin kendi surekli calisan bir
-zamanlayicisi olmadigi icin bu komut, sunucu ortaminda OS seviyesinde bir
-zamanlayicidan (cron/systemd timer) her is gunu 09:00'da cagirilmalidir:
+NOT: Bu artik ZORUNLU degildir — apps.hr.scheduler, web sureci icinde
+calisan bir arka plan thread'i ile ayni kontrolu her gun saat 10:00
+civarinda OTOMATIK yapar (bkz. apps/hr/apps.py -> HrConfig.ready()).
 
-    0 9 * * 1-5  cd /path/to/office-portal && ./venv/bin/python manage.py send_hr_reminders
+Bu komut, isteğe bagli olarak elle tetiklemek veya OS seviyesinde ayrica
+bir cron/systemd timer kurmak isteyenler icin korunmustur; asil "bugun mu
+gonderilecek" kontrolu reminder_service.run_daily_reminders() icinde
+yapilir (ayin son cumasindan 2 gun once, tek seferlik).
 """
 from datetime import date
 
@@ -16,13 +18,13 @@ from apps.hr.services.reminder_service import run_daily_reminders
 
 
 class Command(BaseCommand):
-    help = "Bugün için doğum günü / iş yıldönümü hatırlatma e-postalarını gönderir (tekrar göndermez)."
+    help = "Ayın son Cuma gününden 2 gün önce, bu ayın doğum günü/iş yıldönümü bildirimini TEK e-postada gönderir."
 
     def handle(self, *args, **options):
-        if date.today().weekday() >= 5:  # Cumartesi/Pazar
-            self.stdout.write("Hafta sonu — hatırlatma gönderilmedi.")
-            return
         result = run_daily_reminders()
+        if result.get("skipped"):
+            self.stdout.write(f"Atlandı: {result['reason']}")
+            return
         self.stdout.write(self.style.SUCCESS(
-            f"Tamamlandı: {result['birthdays']} doğum günü, {result['anniversaries']} yıldönümü hatırlatması gönderildi."
+            f"Tamamlandı: {result['birthdays']} doğum günü, {result['anniversaries']} iş yıldönümü TEK e-postada gönderildi."
         ))

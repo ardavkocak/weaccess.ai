@@ -7,15 +7,16 @@ uygulamalarina (apps.*) sahip. Bu dosyada iframe veya harici port
 yonlendirmesi yapan HICBIR view kalmadi; yalnizca Dashboard ve genel
 placeholder/guvenlik agi kaldi.
 """
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import render
 from django.views import View
 
+from apps.inventory.mixins import AdminRequiredMixin
+
 from .modules import MODULES, get_module, get_module_status, get_module_url
 
 
-class DashboardView(LoginRequiredMixin, View):
+class DashboardView(AdminRequiredMixin, View):
     """Portal acildiginda gorunen tek sayfa: modul kartlarinin oldugu ana panel."""
 
     def get(self, request):
@@ -28,7 +29,7 @@ class DashboardView(LoginRequiredMixin, View):
         return render(request, "dashboard/dashboard.html", {"modules": modules_with_status})
 
 
-class ModulePlaceholderView(LoginRequiredMixin, View):
+class ModulePlaceholderView(AdminRequiredMixin, View):
     """
     Operasyonlar altindaki her modul icin ortak bos sayfa.
 
@@ -56,7 +57,7 @@ class ModulePlaceholderView(LoginRequiredMixin, View):
         )
 
 
-class StaticPlaceholderView(LoginRequiredMixin, View):
+class StaticPlaceholderView(AdminRequiredMixin, View):
     """Raporlar/Ayarlar gibi tekil (modul listesinde olmayan) bos sayfalar icin."""
 
     name = ""

@@ -22,6 +22,10 @@
                         <label class="form-label">{{ form.discord_user_id.label }}</label>
                         {{ form.discord_user_id }}
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.company.label }}</label>
+                        {{ form.company }}
+                    </div>
                     {% if not editing %}
                     <div class="mb-3">
                         <label class="form-label">{{ form.position.label }}</label>
@@ -49,13 +53,16 @@
             </div>
             <div class="table-responsive">
                 <table class="table table-modern mb-0 align-middle">
-                    <thead><tr><th>#</th><th>Ad Soyad</th><th>Discord ID</th><th>Durum</th><th></th></tr></thead>
+                    <thead><tr><th>#</th><th>Ad Soyad</th><th>Discord ID</th><th>Şirket</th><th>Durum</th><th></th></tr></thead>
                     <tbody>
                         {% for employee in employees %}
                         <tr>
                             <td>{{ employee.position }}</td>
                             <td>{{ employee.full_name }}</td>
                             <td class="text-muted small">{{ employee.discord_user_id|default:"—" }}</td>
+                            <td>
+                                {% if employee.company %}<span class="pill-badge pill-info">{{ employee.company }}</span>{% else %}<span class="text-muted small">—</span>{% endif %}
+                            </td>
                             <td>
                                 {% if employee.is_active_bool %}<span class="pill-badge pill-success">Aktif</span>{% else %}<span class="pill-badge pill-muted">Pasif</span>{% endif %}
                             </td>
@@ -70,7 +77,7 @@
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="5" class="text-center text-muted py-4">Henüz personel eklenmemiş.</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted py-4">Henüz personel eklenmemiş.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

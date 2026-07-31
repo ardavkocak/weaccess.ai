@@ -29,10 +29,6 @@ urlpatterns = [
     path("zimmetler/<int:pk>/", views.AssignmentDetailView.as_view(), name="assignment-detail"),
     path("zimmetler/<int:pk>/iade-al/", views.AssignmentReturnView.as_view(), name="assignment-return"),
     path("zimmetler/<int:pk>/sil/", views.AssignmentDeleteView.as_view(), name="assignment-delete"),
-    # Personel Ekrani
-    path("cihazlarim/", views.my_assignments_view, name="my-assignments"),
-    # Personelin yalnizca goruntuleyebildigi bosta cihaz listesi (salt okunur)
-    path("bostaki-cihazlar/", views.AvailableDeviceListView.as_view(), name="available-devices"),
     # Bildirimler
     path("bildirimler/", views.notification_list_view, name="notification-list"),
     path("bildirimler/<int:pk>/okundu/", views.mark_notification_read, name="notification-mark-read"),

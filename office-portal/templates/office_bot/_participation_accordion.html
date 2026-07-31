@@ -1,0 +1,24 @@
+{# Katılım listesini şirkete göre grupluyup accordion olarak çizen ortak parça.
+   Parametreler: section_key, icon, label, count_key, groups #}
+<div class="fw-semibold small mb-2">{{ icon }} {{ label }} (<span data-count="{{ count_key }}">{{ count }}</span>)</div>
+<div class="accordion accordion-flush" data-group="{{ section_key }}">
+    {% for group in groups %}
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button py-2 px-2 small" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#{{ section_key }}-company-{{ forloop.counter }}">
+                📁 {{ group.company }} ({{ group.count }})
+            </button>
+        </h2>
+        <div id="{{ section_key }}-company-{{ forloop.counter }}" class="accordion-collapse collapse show" data-company="{{ group.company }}">
+            <div class="accordion-body p-2">
+                <ul class="list-group list-group-flush">
+                    {% for p in group.people %}<li class="list-group-item small">{{ p.name }}</li>{% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted small mb-0">—</p>
+    {% endfor %}
+</div>
