@@ -1,4 +1,4 @@
-"""Satış Pipeline Discord Bot (discord-bot) için entegrasyon adapteru.
+"""Hatırlatıcı Discord Bot (discord-bot) için entegrasyon adapteru.
 
 Diğer adapterlerden farklı olarak bu proje Portal'in kendi sürecinde
 ÇALIŞMAZ — ayrı bir Docker container'ında (discord.py) bağımsız bir süreç
@@ -11,7 +11,7 @@ from integrations.base import BaseIntegration, IntegrationInfo, IntegrationStatu
 class DiscordBotIntegration(BaseIntegration):
     info = IntegrationInfo(
         key="discordbot",
-        name="Satış Pipeline Bot",
+        name="Hatırlatıcı Bot",
         source_project="discord-bot",
         tech_stack="discord.py — ayrı Docker container'ında bağımsız süreç",
         planned_mode="docker_control",

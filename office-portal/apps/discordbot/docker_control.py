@@ -20,8 +20,8 @@ import os
 import docker
 from docker.errors import DockerException, NotFound
 
-CONTAINER_NAME = "c_satis-pipeline-bot_app"
-IMAGE_TAG = "satis-pipeline-bot:latest"
+CONTAINER_NAME = "c_hatirlatici-bot_app"
+IMAGE_TAG = "hatirlatici-bot:latest"
 
 # office-portal container'ı içindeki bind-mount noktası (docker-compose.yml:
 # ../discord-bot:/discord-bot-src). .env/credentials.json buraya yazılır ve
@@ -29,8 +29,6 @@ IMAGE_TAG = "satis-pipeline-bot:latest"
 SRC_PATH = "/discord-bot-src"
 
 ENV_TEMPLATE = """DISCORD_TOKEN={discord_token}
-SPREADSHEET_ID={spreadsheet_id}
-WORKSHEET_NAME={worksheet_name}
 GOOGLE_SERVICE_ACCOUNT_FILE=credentials.json
 DB_PATH=data/bot.db
 DEFAULT_POLL_MINUTES={poll_minutes}
@@ -68,8 +66,6 @@ def write_env_files(ayar) -> None:
     os.makedirs(SRC_PATH, exist_ok=True)
     env_content = ENV_TEMPLATE.format(
         discord_token=ayar.discord_token,
-        spreadsheet_id=ayar.spreadsheet_id,
-        worksheet_name=ayar.worksheet_name or "Sales Pipeline",
         poll_minutes=ayar.poll_minutes,
         stale_days=ayar.stale_days,
     )

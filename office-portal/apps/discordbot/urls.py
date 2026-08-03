@@ -1,4 +1,4 @@
-"""Discord Bot (Satış Pipeline) URL yapısı."""
+"""Discord Bot (Hatırlatıcı) URL yapısı."""
 from django.urls import path
 
 from . import views

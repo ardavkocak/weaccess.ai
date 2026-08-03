@@ -111,10 +111,10 @@ MODULES = [
     },
     {
         "slug": "discord-bot",
-        "name": "Satış Pipeline Bot",
+        "name": "Hatırlatıcı Bot",
         "icon": "bi-discord",
         "color": "slate",
-        "description": "Google Sheets satış pipeline'ını izleyip Discord'a bildirim gönderen bot; ayrı bir container'da çalışır.",
+        "description": "Google Sheets satış pipeline'ını izleyip Discord'a bildirim/hatırlatma gönderen bot; ayrı bir container'da çalışır.",
         "source": "discord-bot",
         "integration_key": "discordbot",
         "url_name": "discordbot:dashboard",

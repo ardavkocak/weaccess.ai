@@ -54,8 +54,6 @@ class DashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
         yeni_token = (request.POST.get("discord_token") or "").strip()
         if yeni_token:
             ayar.discord_token = yeni_token
-        ayar.spreadsheet_id = (request.POST.get("spreadsheet_id") or "").strip()
-        ayar.worksheet_name = (request.POST.get("worksheet_name") or "Sales Pipeline").strip()
         ayar.service_account_json = (request.POST.get("service_account_json") or "").strip()
         try:
             ayar.poll_minutes = max(1, int(request.POST.get("poll_minutes") or 30))

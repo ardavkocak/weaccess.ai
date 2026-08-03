@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Satış Pipeline Bot{% endblock %}
-{% block page_title %}Satış Pipeline Discord Bot{% endblock %}
+{% block title %}Hatırlatıcı Bot{% endblock %}
+{% block page_title %}Hatırlatıcı Discord Bot{% endblock %}
 {% block content %}
 
 <div class="row justify-content-center">
@@ -25,10 +25,11 @@
                 {% endif %}
                 <p class="text-muted small">
                     Bot, Portal'in kendi sürecinde değil, ayrı bir Docker container'ında
-                    (discord.py) çalışır. Google Sheets'teki "Sales Pipeline" tablosunu periyodik
-                    olarak okuyup Discord'a bildirim gönderir; kullanıcılar bildirimlerini
-                    Discord'daki <code>/bildirim-ekle</code>, <code>/sheet-ekle</code> gibi slash
-                    komutlarıyla yönetir.
+                    (discord.py) çalışır. Google Sheets bağlantısı burada değil, Discord
+                    üzerinden yönetilir: her kullanıcı kendi Google Sheets tablosunu
+                    <code>/sheet-ekle</code> komutuyla kendisi bağlar, bildirimlerini de
+                    <code>/bildirim-ekle</code> ile kendisi ayarlar. Aynı bota birden fazla
+                    kişi, kendi sheet'leriyle bağımsız şekilde bağlanabilir.
                 </p>
                 <form method="post" class="d-flex gap-2">
                     {% csrf_token %}
@@ -64,19 +65,6 @@
                             Boş bırakırsanız mevcut token korunur. Değiştirmek için yenisini girin.
                         </div>
                     </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-8">
-                            <label class="form-label">Google Sheets Belge ID'si</label>
-                            <input type="text" name="spreadsheet_id" class="form-control"
-                                   placeholder="Sheet URL'sindeki /d/ ile /edit arasındaki kısım"
-                                   value="{{ ayar.spreadsheet_id }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Sekme Adı</label>
-                            <input type="text" name="worksheet_name" class="form-control"
-                                   value="{{ ayar.worksheet_name|default:'Sales Pipeline' }}">
-                        </div>
-                    </div>
                     <div class="mb-3">
                         <label class="form-label">Servis Hesabı JSON İçeriği (credentials.json)</label>
                         <textarea name="service_account_json" class="form-control" rows="8"
@@ -84,9 +72,18 @@
                                   placeholder='{"type": "service_account", "project_id": "...", ...}'>{{ ayar.service_account_json }}</textarea>
                         <div class="form-text">
                             Google Cloud Console → IAM ve Yönetim → Hizmet Hesapları → Anahtarlar
-                            bölümünden indirilen JSON dosyasının tüm içeriği. Bu hesabın, hedef
-                            Google Sheets dosyasında en az Görüntüleyici izniyle paylaşılmış olması gerekir.
+                            bölümünden indirilen JSON dosyasının tüm içeriği. Bu hesap, botu kullanan
+                            TÜM kullanıcılar için ortaktır — herkes kendi Google Sheets dosyasını bu
+                            hesapla (en az Görüntüleyici izniyle) paylaşıp Discord'da
+                            <code>/sheet-ekle</code> komutunu kullanmalıdır.
                         </div>
+                        {% if ayar.service_account_email %}
+                        <div class="alert alert-info small mt-2 mb-0 py-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Kullanıcılar Sheets dosyalarını şu adresle paylaşmalı:
+                            <code>{{ ayar.service_account_email }}</code>
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
