@@ -37,7 +37,7 @@ $ports = @{
     "ofis-gorev-takibi"       = "http://localhost:8110"
     "office-portal"           = "http://localhost:8000"
     "zimmet-sistemi"          = "http://localhost:8001"
-    "discord-bot"             = "http://localhost:8120 (yönetim paneli)"
+    "discord-bot"             = "(host ağına açık değil, arka planda çalışan Discord bot)"
 }
 
 if ($Down) {
