@@ -6,6 +6,7 @@ istediginde yalnizca bu dosyadaki `get_integration()` fonksiyonunu
 cagirir; kaynak projeye dair her sey (yol, teknoloji, baglanti modu)
 ilgili adapter'in icinde kalir.
 """
+from integrations.discordbot.adapter import DiscordBotIntegration
 from integrations.documentation.adapter import DocumentationIntegration
 from integrations.hr.adapter import HrIntegration
 from integrations.inventory.adapter import InventoryIntegration
@@ -18,6 +19,7 @@ _REGISTRY = {
     "hr": HrIntegration(),
     "monthly_tracking": MonthlyTrackingIntegration(),
     "documentation": DocumentationIntegration(),
+    "discordbot": DiscordBotIntegration(),
 }
 
 

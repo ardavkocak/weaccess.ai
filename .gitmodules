@@ -8,3 +8,6 @@
 [submodule "ofis-gorev-takibi"]
 	path = ofis-gorev-takibi
 	url = https://github.com/khrmncberil/ofis-gorev-takibi.git
+[submodule "discord-bot"]
+	path = discord-bot
+	url = https://github.com/ardavkocak/discord-bot.git

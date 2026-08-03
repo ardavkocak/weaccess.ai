@@ -32,6 +32,11 @@ services:
       # Dosya adi ofis-gorev-takibi/docker-compose.yml'deki DATABASE_FILE
       # degeriyle (office-task-tracking.sqlite) birebir ayni olmalidir.
       OFFICE_BOT_DB_PATH: /ofis-gorev-takibi-data/office-task-tracking.sqlite
+      # discord-bot container'ini docker SDK ile (yeniden) olustururken volume
+      # kaynak yollari HOST'un gordugu mutlak yol olmali (bu container'in kendi
+      # /discord-bot-src goruntusu degil) - bkz. apps/discordbot/docker_control.py.
+      # Gercek deger docker-compose.override.yml'de (makineye ozgu, .gitignore'da).
+      DISCORD_BOT_HOST_PATH: ""
     volumes:
       - .:/app
       - ./staticfiles:/app/staticfiles
@@ -40,6 +45,13 @@ services:
       # ayni SQLite dosyasini paylasir (bkz. ofis-gorev-takibi/docker-compose.yml
       # -> ./ofis-data:/app/data).
       - ../ofis-gorev-takibi/ofis-data:/ofis-gorev-takibi-data
+      # discord-bot: ayarlar sayfasi .env/credentials.json dosyalarini buraya yazar.
+      - ../discord-bot:/discord-bot-src
+      # Docker socket: discord-bot modulunun Baslat/Durdur kontrolu icin.
+      # DIKKAT: bu, office-portal container'ina host'taki TUM Docker
+      # container'lari uzerinde kontrol yetkisi verir (yalniz discord-bot
+      # degil) - kullanicinin acik onayiyla eklenmistir (bkz. proje notlari).
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       db:
         condition: service_healthy

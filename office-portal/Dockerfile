@@ -18,10 +18,12 @@ WORKDIR /app
 # default-jre-headless: tabula-py, PDFBox tabanli Java jar'ini calistirir.
 # poppler-utils: pdf2image, PDF sayfalarini OCR icin gorsele cevirirken kullanir.
 # libgl1: camelot'un opencv (cv2) bagimliligi bu paylasimli kutuphaneyi arar.
+# gosu: entrypoint, docker.sock'a erisebilmek icin once root olarak baslar
+# (bkz. docker-entrypoint.sh), asil uygulamayi appuser'a bu araçla devreder.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         postgresql-client tesseract-ocr tesseract-ocr-tur \
-        ghostscript default-jre-headless poppler-utils libgl1 \
+        ghostscript default-jre-headless poppler-utils libgl1 gosu \
     && rm -rf /var/lib/apt/lists/*
 
 COPY docker-entrypoint.sh .
@@ -35,7 +37,10 @@ RUN chmod +x /app/docker-entrypoint.sh \
     && mkdir -p /app/staticfiles /app/media \
     && chown -R appuser:appuser /app
 
-USER appuser
+# USER appuser BILEREK YOK: entrypoint root olarak baslar (docker.sock'un
+# host'taki grubuna appuser'i runtime'da ekleyebilmek icin), sonra gosu ile
+# appuser'a devreder. Uygulama sureci hicbir zaman root olarak calismaz
+# (bkz. docker-entrypoint.sh sonundaki "exec gosu appuser").
 
 EXPOSE 8000
 

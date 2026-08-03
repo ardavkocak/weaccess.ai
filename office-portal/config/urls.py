@@ -18,6 +18,7 @@ urlpatterns = [
     path("operasyonlar/ik-otomasyon/", include("apps.hr.urls", namespace="hr")),
     path("operasyonlar/dokumantasyon/", include("apps.documentation.urls", namespace="documentation")),
     path("operasyonlar/aylik-takip/", include("apps.monthly_tracking.urls", namespace="monthly_tracking")),
+    path("operasyonlar/discord-bot/", include("apps.discordbot.urls", namespace="discordbot")),
     path("", include("portal.urls")),
 ]
 
