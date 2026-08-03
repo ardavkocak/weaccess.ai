@@ -28,6 +28,11 @@ services:
       EMAIL_HOST_PASSWORD: ""
       DEFAULT_FROM_EMAIL: "Ofis Portali <noreply@ofisportali.local>"
 
+      # discord-bot container'ini docker socket uzerinden (yeniden) olustururken
+      # kullanilacak, HOST'un gordugu mutlak yol. Makineye ozgu, bu yuzden
+      # override dosyasindadir.
+      DISCORD_BOT_HOST_PATH: "c:\\Users\\ARDA\\Desktop\\Github Repos\\weaccess.ai\\discord-bot"
+
     # Port eslemesi yalnizca burada tanimlidir. 8000 doluysa sol tarafi
     # degistirin (zimmet-sistemi zaten 8001'i kullaniyor).
     ports:

@@ -109,6 +109,17 @@ MODULES = [
         "url_name": "documentation:dashboard",
         "active_prefixes": ["/operasyonlar/dokumantasyon/"],
     },
+    {
+        "slug": "discord-bot",
+        "name": "Satış Pipeline Bot",
+        "icon": "bi-discord",
+        "color": "slate",
+        "description": "Google Sheets satış pipeline'ını izleyip Discord'a bildirim gönderen bot; ayrı bir container'da çalışır.",
+        "source": "discord-bot",
+        "integration_key": "discordbot",
+        "url_name": "discordbot:dashboard",
+        "active_prefixes": ["/operasyonlar/discord-bot/"],
+    },
 ]
 
 _MODULES_BY_SLUG = {module["slug"]: module for module in MODULES}

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "apps.hr",
     "apps.monthly_tracking",
     "apps.documentation",
+    "apps.discordbot",
 ]
 
 MIDDLEWARE = [

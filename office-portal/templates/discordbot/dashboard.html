@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Satış Pipeline Bot{% endblock %}
+{% block page_title %}Satış Pipeline Discord Bot{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-discord me-2"></i>Bot Durumu</span>
+                {% if status == "running" %}
+                    <span class="pill-badge pill-success"><i class="bi bi-check-circle"></i> Çalışıyor</span>
+                {% elif status == "not_found" %}
+                    <span class="pill-badge pill-muted"><i class="bi bi-dash-circle"></i> Henüz oluşturulmadı</span>
+                {% elif status == "error" %}
+                    <span class="pill-badge pill-danger"><i class="bi bi-exclamation-triangle"></i> Hata</span>
+                {% else %}
+                    <span class="pill-badge pill-warning"><i class="bi bi-pause-circle"></i> Durduruldu ({{ status }})</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if status == "error" %}
+                <p class="text-muted small mb-3">{{ status_detail }}</p>
+                {% endif %}
+                <p class="text-muted small">
+                    Bot, Portal'in kendi sürecinde değil, ayrı bir Docker container'ında
+                    (discord.py) çalışır. Google Sheets'teki "Sales Pipeline" tablosunu periyodik
+                    olarak okuyup Discord'a bildirim gönderir; kullanıcılar bildirimlerini
+                    Discord'daki <code>/bildirim-ekle</code>, <code>/sheet-ekle</code> gibi slash
+                    komutlarıyla yönetir.
+                </p>
+                <form method="post" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="start" class="btn btn-sm btn-outline-primary"
+                            {% if status == "running" or status == "not_found" %}disabled{% endif %}>
+                        <i class="bi bi-play-fill"></i> Başlat
+                    </button>
+                    <button type="submit" name="action" value="stop" class="btn btn-sm btn-outline-secondary"
+                            {% if status != "running" %}disabled{% endif %}>
+                        <i class="bi bi-stop-fill"></i> Durdur
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-gear me-2"></i>Bağlantı Ayarları
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">
+                    Kaydettiğinizde bot container'ı yeni ayarlarla otomatik olarak yeniden
+                    oluşturulup başlatılır (mevcut bağlantı varsa kesintiye uğrar).
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Discord Bot Token</label>
+                        <input type="password" name="discord_token" class="form-control"
+                               placeholder="{% if ayar.discord_token %}••••••••••••••••{% else %}Discord Developer Portal'dan alınan token{% endif %}"
+                               autocomplete="off">
+                        <div class="form-text">
+                            Boş bırakırsanız mevcut token korunur. Değiştirmek için yenisini girin.
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Google Sheets Belge ID'si</label>
+                            <input type="text" name="spreadsheet_id" class="form-control"
+                                   placeholder="Sheet URL'sindeki /d/ ile /edit arasındaki kısım"
+                                   value="{{ ayar.spreadsheet_id }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Sekme Adı</label>
+                            <input type="text" name="worksheet_name" class="form-control"
+                                   value="{{ ayar.worksheet_name|default:'Sales Pipeline' }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Servis Hesabı JSON İçeriği (credentials.json)</label>
+                        <textarea name="service_account_json" class="form-control" rows="8"
+                                  style="font-family: monospace; font-size: 0.8rem;"
+                                  placeholder='{"type": "service_account", "project_id": "...", ...}'>{{ ayar.service_account_json }}</textarea>
+                        <div class="form-text">
+                            Google Cloud Console → IAM ve Yönetim → Hizmet Hesapları → Anahtarlar
+                            bölümünden indirilen JSON dosyasının tüm içeriği. Bu hesabın, hedef
+                            Google Sheets dosyasında en az Görüntüleyici izniyle paylaşılmış olması gerekir.
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Kontrol Sıklığı (dakika)</label>
+                            <input type="number" name="poll_minutes" class="form-control" min="1"
+                                   value="{{ ayar.poll_minutes }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Eskime Eşiği (gün)</label>
+                            <input type="number" name="stale_days" class="form-control" min="1"
+                                   value="{{ ayar.stale_days }}">
+                        </div>
+                    </div>
+                    <button type="submit" name="action" value="save" class="btn btn-primary btn-sm">
+                        <i class="bi bi-check2"></i> Kaydet ve Yeniden Başlat
+                    </button>
+                </form>
+            </div>
+            {% if ayar.updated_at %}
+            <div class="card-footer small text-muted">
+                Son güncelleme: {{ ayar.updated_at|date:"d.m.Y H:i" }}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
