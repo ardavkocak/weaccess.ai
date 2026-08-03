@@ -7,6 +7,10 @@
 #
 # Not: ofis-gorev-takibi önce başlatılır çünkü office-portal onun ürettiği
 # SQLite dosyasını (ofis-gorev-takibi/ofis-data/ofis.sqlite) bind-mount ile okur.
+#
+# Not: discord-bot ilk çalıştırmadan önce kendi .env ve credentials.json
+# dosyalarına ihtiyaç duyar (discord-bot/.env.example'dan kopyala, doldur).
+# Bunlar submodule ile birlikte gelmez (gitignore'da), aksi halde build başarısız olur.
 
 param(
     [switch]$Down,
@@ -22,7 +26,8 @@ $projects = @(
     "aylik-takip",
     "dokumantasyon-otomasyon",
     "ik-otomasyon",
-    "zimmet-sistemi"
+    "zimmet-sistemi",
+    "discord-bot"
 )
 
 $ports = @{
@@ -32,6 +37,7 @@ $ports = @{
     "ofis-gorev-takibi"       = "http://localhost:8110"
     "office-portal"           = "http://localhost:8000"
     "zimmet-sistemi"          = "http://localhost:8001"
+    "discord-bot"             = "http://localhost:8120 (yönetim paneli)"
 }
 
 if ($Down) {
