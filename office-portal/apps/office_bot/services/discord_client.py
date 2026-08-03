@@ -63,27 +63,6 @@ def _friendly(response: requests.Response) -> str:
     return f"Discord hatası ({response.status_code}): {message}"
 
 
-def get_bot_user():
-    resp = requests.get(f"{API_BASE}/users/@me", headers=_headers(), timeout=TIMEOUT)
-    if not resp.ok:
-        raise DiscordError(_friendly(resp))
-    return resp.json()
-
-
-def get_guild(guild_id):
-    resp = requests.get(f"{API_BASE}/guilds/{guild_id}", headers=_headers(), timeout=TIMEOUT)
-    if not resp.ok:
-        raise DiscordError(_friendly(resp))
-    return resp.json()
-
-
-def get_channel(channel_id):
-    resp = requests.get(f"{API_BASE}/channels/{channel_id}", headers=_headers(), timeout=TIMEOUT)
-    if not resp.ok:
-        raise DiscordError(_friendly(resp))
-    return resp.json()
-
-
 def build_components(flow_id, step, disabled=False):
     """buildConfirmButtons'in REST karsiligi: Evet/Hayir butonlu action row."""
     return [
@@ -212,40 +191,3 @@ def send_direct_message(user_id, content):
 
 def is_configured():
     return bool(settings_service.get("discord_bot_token"))
-
-
-def test_connection():
-    """Ayarlar sayfasindaki 'Bağlantıyı Test Et' — bot.js testConnection()'ın REST portu."""
-    if not is_configured():
-        return {"ok": False, "message": "Discord bot token tanımlı değil. Ayarlar sayfasından ekleyin."}
-
-    try:
-        bot_user = get_bot_user()
-    except (DiscordError, requests.RequestException) as exc:
-        return {"ok": False, "message": str(exc)}
-
-    guild_id = settings_service.get("discord_guild_id")
-    guild = None
-    if guild_id:
-        try:
-            guild = get_guild(guild_id)
-        except (DiscordError, requests.RequestException) as exc:
-            return {"ok": False, "message": f"Bot: {bot_user['username']}#{bot_user.get('discriminator', '0')}. Sunucu bulunamadı: {exc}"}
-
-    results = []
-    for key, meta in settings_service.CHANNEL_KEYS.items():
-        channel_id = settings_service.get(meta["setting_key"])
-        if not channel_id:
-            results.append(f"{meta['label']}: tanımlı değil")
-            continue
-        try:
-            channel = get_channel(channel_id)
-            results.append(f"{meta['label']}: #{channel.get('name', channel_id)}")
-        except (DiscordError, requests.RequestException) as exc:
-            results.append(f"{meta['label']}: {exc}")
-
-    header = f"Bot: {bot_user['username']}"
-    if guild:
-        header += f" — Sunucu: {guild['name']}"
-
-    return {"ok": True, "message": f"Bağlantı başarılı. {header} — {' · '.join(results)}"}

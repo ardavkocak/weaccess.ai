@@ -27,8 +27,12 @@
                        placeholder="{% if token_is_set %}{{ settings.discord_bot_token }} (değiştirmek için yeni token girin){% else %}Token girilmemiş{% endif %}">
                 <div class="form-text">Boş bırakılırsa mevcut token değişmez.</div>
             </div>
+            <div class="mb-3">
+                <label class="form-label">Şirket Adı</label>
+                <input type="text" name="company_name" class="form-control" value="{{ settings.company_name }}">
+                <div class="form-text">Discord mesajlarındaki {company} değişkeninde kullanılır.</div>
+            </div>
             <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Kaydet</button>
-            <a href="{% url 'office_bot:test_actions' %}" class="btn btn-outline-secondary btn-sm">Bağlantıyı Test Et</a>
         </form>
     </div>
 </div>
