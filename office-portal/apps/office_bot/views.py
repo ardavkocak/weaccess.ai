@@ -261,7 +261,7 @@ class HistoryView(AdminRequiredMixin, View):
 
 
 class DiscordSettingsView(AdminRequiredMixin, View):
-    """Discord Ayarları: sunucu/kanal ID'leri + bot token."""
+    """Discord Ayarları: sunucu/kanal ID'leri + bot token + şirket adı."""
 
     def get(self, request):
         return render(request, "office_bot/settings_discord.html", self._context())
@@ -286,60 +286,30 @@ class DiscordSettingsView(AdminRequiredMixin, View):
 
 
 class ScheduleSettingsView(AdminRequiredMixin, View):
-    """Bildirim Saatleri: zamanlanmış mesajların saati/metni/etkinliği."""
+    """Bildirim Saatleri: zamanlanmış mesajların saati/metni/etkinliği, manuel
+    "Şimdi Gönder" gönderimleri ve Görev Onayı kontrolleri — tek sayfada.
+
+    Eskiden ayrı bir "Test İşlemleri" sayfası vardı; sadeleştirme için bu
+    sayfayla birleştirildi (bkz. proje geçmişi). Discord bağlantı testi
+    kaldırıldı (token zaten Discord Ayarları sayfasından yönetiliyor).
+    """
 
     def get(self, request):
-        return render(request, "office_bot/settings_schedule.html", {"scheduled_messages": schedule_service.get_all()})
+        return render(request, "office_bot/settings_schedule.html", self._context())
 
     def post(self, request):
-        errors, updates = schedule_service.validate_schedule(request.POST)
-        if errors:
-            for error in errors:
-                messages.error(request, error)
-            return render(request, "office_bot/settings_schedule.html", {"scheduled_messages": schedule_service.get_all()}, status=400)
-
-        result = schedule_service.save_schedule(updates)
-        note = "Mesaj takvimi güncellendi." if result["timing_changed"] else ("Mesaj metinleri güncellendi." if result["saved"] else "Değişiklik yok.")
-        messages.success(request, note)
-        return redirect("office_bot:settings_schedule")
-
-
-class GeneralSettingsView(AdminRequiredMixin, View):
-    """Günlük Ayarlar: şirket adı ve çalışma günü kuralı (bilgilendirme)."""
-
-    def get(self, request):
-        return render(request, "office_bot/settings_general.html", {"settings": settings_service.get_masked_settings()})
-
-    def post(self, request):
-        errors, data = settings_service.validate_general_settings(request.POST)
-        if errors:
-            for error in errors:
-                messages.error(request, error)
-            return render(request, "office_bot/settings_general.html", {"settings": settings_service.get_masked_settings()}, status=400)
-
-        settings_service.save_settings(data)
-        messages.success(request, "Ayarlar kaydedildi.")
-        return redirect("office_bot:settings_general")
-
-
-class TestActionsView(AdminRequiredMixin, View):
-    """Test İşlemleri: Discord bağlantı testi, onay akışını başlat/sıfırla, mesajı şimdi gönder."""
-
-    def get(self, request):
-        return render(request, "office_bot/test_actions.html", self._context())
-
-    def post(self, request):
-        action = request.POST.get("action")
+        action = request.POST.get("action", "save_schedule")
         duty_type = _default_duty_type()
 
-        if action == "test_connection":
-            result = discord_client.test_connection()
+        if action == "save_schedule":
+            return self._save_schedule(request)
+
+        if action == "send_message":
+            result = self._send_message_now(request.POST.get("message_id"), duty_type)
         elif action == "start_flow" and duty_type:
             result = duty_confirmation_service.start_flow(duty_type.id, source="manual")
-        elif action == "reset_flow" and duty_type:
-            result = duty_confirmation_service.reset_and_ask_again(duty_type.id)
-        elif action == "send_message":
-            result = self._send_message_now(request.POST.get("message_id"), duty_type)
+        elif action == "reset_today_flow" and duty_type:
+            result = duty_confirmation_service.reset_today_and_ask_again(duty_type.id)
         else:
             result = {"ok": False, "message": "Geçersiz işlem."}
 
@@ -347,7 +317,19 @@ class TestActionsView(AdminRequiredMixin, View):
             messages.success(request, result["message"])
         else:
             messages.error(request, result["message"])
-        return redirect("office_bot:test_actions")
+        return redirect("office_bot:settings_schedule")
+
+    def _save_schedule(self, request):
+        errors, updates = schedule_service.validate_schedule(request.POST)
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, "office_bot/settings_schedule.html", self._context(), status=400)
+
+        result = schedule_service.save_schedule(updates)
+        note = "Mesaj takvimi güncellendi." if result["timing_changed"] else ("Mesaj metinleri güncellendi." if result["saved"] else "Değişiklik yok.")
+        messages.success(request, note)
+        return redirect("office_bot:settings_schedule")
 
     @staticmethod
     def _send_message_now(message_id, duty_type):
@@ -387,9 +369,8 @@ class TestActionsView(AdminRequiredMixin, View):
     def _context():
         duty_type = _default_duty_type()
         return {
-            "bot_configured": discord_client.is_configured(),
-            "confirmation_status": duty_confirmation_service.get_today_status(duty_type.id) if duty_type else None,
             "scheduled_messages": schedule_service.get_all(),
+            "confirmation_status": duty_confirmation_service.get_today_status(duty_type.id) if duty_type else None,
         }
 
 

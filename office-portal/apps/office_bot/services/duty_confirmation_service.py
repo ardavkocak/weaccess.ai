@@ -1,22 +1,24 @@
 """
 Etkilesimli gorev onayi servisi — dutyConfirmation.service.js'in Python portu.
 
-Yalnizca BASLATMA/SIFIRLAMA/DURUM tarafi buradadir (Portal'in "Test
-Islemleri" sayfasindan tetiklenir). Buton TIKLAMALARINI (onButton/
-decideAnswer) islemek gateway baglantisi gerektirir; bu, degismeden
-calismaya devam eden orijinal Node botunun isidir (bkz. discord_client.py
-docstring'i). Portal yalnizca akisi baslatir/sifirlar; sonraki Evet/Hayir
-tiklamalarini zaten calisan bot isler ve ayni SQLite'a yazar.
+Yalnizca BASLATMA/SIFIRLAMA/DURUM tarafi buradadir (Portal'in "Bildirim
+Saatleri" sayfasindaki "Görev Onayı" bolumunden tetiklenir). Buton
+TIKLAMALARINI (onButton/decideAnswer) islemek gateway baglantisi gerektirir;
+bu, degismeden calismaya devam eden orijinal Node botunun isidir (bkz.
+discord_client.py docstring'i). Portal yalnizca akisi baslatir/sifirlar;
+sonraki Evet/Hayir tiklamalarini zaten calisan bot isler ve ayni SQLite'a yazar.
 """
 from __future__ import annotations
 
 from django.db import transaction
 
-from ..models import DutyConfirmation, Employee
+from ..models import DutyConfirmation, DutyHistory, DutyType, Employee, ScheduledMessage
 from . import discord_client, rotation_service, settings_service
 from .date_utils import add_days, format_long_tr, today_iso
 from .discord_client import DiscordError
 from .messages import render_template
+
+DEFAULT_DUTY_TEMPLATE = "📅 {gunUn} görevlisi belirleniyor.\n\n👤 {mention}\n\n{gun} ofiste misin?"
 
 
 def get_flow(duty_type_id, date):
@@ -45,8 +47,8 @@ def _next_working_day(from_iso=None):
 
 
 @transaction.atomic
-def _ensure_flow(duty_type_id, source):
-    target_date = _next_working_day()
+def _ensure_flow(duty_type_id, source, target_date):
+    """Verilen tarih icin akisi bulur; yoksa siranin guncel sahibinden olusturur."""
     existing = get_flow(duty_type_id, target_date)
     if existing:
         return existing, False
@@ -62,18 +64,9 @@ def _ensure_flow(duty_type_id, source):
     return flow, True
 
 
-def start_flow(duty_type_id, source="manual"):
-    """Onay akisini baslatir (veya mevcut akisi tazeler). Discord'a REST ile gonderir."""
-    from ..models import DutyType
-
-    duty_type = DutyType.objects.filter(pk=duty_type_id).first()
-    if not duty_type:
-        return {"ok": False, "message": "Görev türü bulunamadı."}
-
-    flow, created = _ensure_flow(duty_type_id, source)
-    if not flow:
-        return {"ok": False, "message": "Aktif çalışan bulunamadı. Önce en az bir çalışanı aktif yapın."}
-
+def _send_flow_question(duty_type, flow, created):
+    """Var olan/yeni olusturulan bir akis icin Discord'a soru mesajini gonderir
+    (yeni olusturulduysa yeni mesaj, zaten varsa mevcut mesaj tazelenir)."""
     day_label = format_long_tr(flow.duty_date)
 
     if flow.status == "confirmed":
@@ -81,10 +74,8 @@ def start_flow(duty_type_id, source="manual"):
     if flow.status == "exhausted":
         return {"ok": True, "skipped": True, "message": f"{day_label} için uygun kişi bulunamadı olarak işaretlenmiş."}
 
-    from ..models import ScheduledMessage
-
-    template_row = ScheduledMessage.objects.filter(kind="duty", duty_type_id=duty_type_id).order_by("sort_order").first()
-    template = template_row.message_template if template_row else "📅 {gunUn} görevlisi belirleniyor.\n\n👤 {mention}\n\n{gun} ofiste misin?"
+    template_row = ScheduledMessage.objects.filter(kind="duty", duty_type_id=duty_type.id).order_by("sort_order").first()
+    template = template_row.message_template if template_row else DEFAULT_DUTY_TEMPLATE
 
     candidate_employee = Employee.objects.filter(pk=flow.candidate_employee_id).first() or {
         "full_name": flow.candidate_name, "discord_user_id": None,
@@ -118,56 +109,71 @@ def start_flow(duty_type_id, source="manual"):
     return {"ok": True, "message": f"{day_label} için {flow.candidate_name} soruldu."}
 
 
-@transaction.atomic
-def reset_today(duty_type_id):
-    from . import history_service
+def start_flow(duty_type_id, source="manual"):
+    """Onay akisini baslatir (veya mevcut akisi tazeler). Her zaman BIR SONRAKI
+    CALISMA GUNUNU hedefler. Discord'a REST ile gonderir."""
+    duty_type = DutyType.objects.filter(pk=duty_type_id).first()
+    if not duty_type:
+        return {"ok": False, "message": "Görev türü bulunamadı."}
 
-    flow = get_active_flow(duty_type_id)
+    flow, created = _ensure_flow(duty_type_id, source, _next_working_day())
     if not flow:
-        return {"ok": False, "message": 'Sıfırlanacak bir onay akışı yok. Önce "Görev Onayını Başlat" deyin.'}
-    if flow.status == "pending" and flow.step == 0:
-        return {"ok": False, "message": "Onay akışı zaten en baştan bekliyor; sıfırlanacak bir cevap yok."}
-
-    from ..models import DutyHistory
-
-    record = DutyHistory.objects.filter(duty_type_id=duty_type_id, duty_date=flow.duty_date).first()
-    if record:
-        if record.consumed_turn == 1:
-            rotation_service.restore_turn(duty_type_id, record.employee_id)
-        record.delete()
-
-    candidate = rotation_service.resolve_current(duty_type_id)
-    if not candidate:
         return {"ok": False, "message": "Aktif çalışan bulunamadı. Önce en az bir çalışanı aktif yapın."}
 
-    previous_name = flow.confirmed_name
-    flow.status = "pending"
-    flow.step = 0
-    flow.start_employee_id = candidate.id
-    flow.candidate_employee_id = candidate.id
-    flow.candidate_name = candidate.full_name
-    flow.previous_name = None
-    flow.confirmed_employee_id = None
-    flow.confirmed_name = None
-    flow.reset_count = (flow.reset_count or 0) + 1
-    flow.save()
-
-    return {
-        "ok": True, "message": f"Onay sıfırlandı. Yeniden {candidate.full_name} soruluyor.",
-        "flow": flow, "previous_name": previous_name,
-    }
+    return _send_flow_question(duty_type, flow, created)
 
 
-def reset_and_ask_again(duty_type_id):
-    reset = reset_today(duty_type_id)
-    if not reset["ok"]:
-        return reset
+@transaction.atomic
+def reset_today_and_ask_again(duty_type_id):
+    """"Bugünkü Görevlisini Tekrar Sor" butonu: hedef HER ZAMAN bugündür ve
+    bir sonraki çalışma gününe (yarına) dokunmaz.
 
-    sent = start_flow(duty_type_id, source="manual")
+    Dünkü onayda "Evet" diyen kişi bugün fiilen ofise gelmemiş olabilir; bu
+    durumda admin bugünün görev onayını (varsa) sıfırlar ve sıranın güncel
+    sahibinden yeniden başlatır. Bugün için hiç akış yoksa sıfırdan oluşturur.
+    """
+    duty_type = DutyType.objects.filter(pk=duty_type_id).first()
+    if not duty_type:
+        return {"ok": False, "message": "Görev türü bulunamadı."}
+
+    target_date = today_iso()
+    flow = get_flow(duty_type_id, target_date)
+    previous_name = None
+    created = False
+
+    if flow is None:
+        flow, created = _ensure_flow(duty_type_id, "manual", target_date)
+        if not flow:
+            return {"ok": False, "message": "Aktif çalışan bulunamadı. Önce en az bir çalışanı aktif yapın."}
+    elif not (flow.status == "pending" and flow.step == 0):
+        record = DutyHistory.objects.filter(duty_type_id=duty_type_id, duty_date=target_date).first()
+        if record:
+            if record.consumed_turn == 1:
+                rotation_service.restore_turn(duty_type_id, record.employee_id)
+            record.delete()
+
+        candidate = rotation_service.resolve_current(duty_type_id)
+        if not candidate:
+            return {"ok": False, "message": "Aktif çalışan bulunamadı. Önce en az bir çalışanı aktif yapın."}
+
+        previous_name = flow.confirmed_name
+        flow.status = "pending"
+        flow.step = 0
+        flow.start_employee_id = candidate.id
+        flow.candidate_employee_id = candidate.id
+        flow.candidate_name = candidate.full_name
+        flow.previous_name = None
+        flow.confirmed_employee_id = None
+        flow.confirmed_name = None
+        flow.reset_count = (flow.reset_count or 0) + 1
+        flow.save()
+    # else: bugunun akisi zaten en bastan bekliyor; asagida mevcut mesaj tazelenir/gonderilir.
+
+    sent = _send_flow_question(duty_type, flow, created)
     if not sent["ok"]:
-        return {"ok": False, "message": f"Onay sıfırlandı ancak Discord mesajı güncellenemedi: {sent['message']}"}
+        return {"ok": False, "message": f"Bugünün onayı sıfırlandı ancak Discord mesajı güncellenemedi: {sent['message']}"}
 
-    suffix = f" Önceki sonuç ({reset['previous_name']}) iptal edildi." if reset.get("previous_name") else ""
+    suffix = f" Önceki sonuç ({previous_name}) iptal edildi." if previous_name else ""
     return {"ok": True, "message": f"{sent['message']}{suffix}"}
 
 

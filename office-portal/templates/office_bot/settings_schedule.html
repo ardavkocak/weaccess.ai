@@ -3,42 +3,102 @@
 {% block page_title %}Bildirim Saatleri{% endblock %}
 {% block content %}
 
-<div class="card">
-    <div class="card-header">Zamanlanmış Mesajlar</div>
-    <div class="card-body">
-        <form method="post">
-            {% csrf_token %}
-            {% for message in scheduled_messages %}
-            <div class="row g-3 align-items-start border-bottom pb-3 mb-3">
-                <div class="col-md-3">
-                    <div class="fw-semibold">{{ message.name }}</div>
-                    <span class="pill-badge {% if message.kind == 'duty' %}pill-info{% else %}pill-muted{% endif %}">
-                        {% if message.kind == 'duty' %}Görev Bildirimi{% else %}Hatırlatma{% endif %}
+<div class="row g-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Zamanlanmış Mesajlar</div>
+            <div class="table-responsive">
+                <table class="table table-modern mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Mesaj</th>
+                            <th style="width: 110px;">Saat</th>
+                            <th style="width: 70px;">Etkin</th>
+                            <th>Mesaj Metni</th>
+                            <th class="text-end" style="width: 150px;">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for message in scheduled_messages %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ message.name }}</div>
+                                <span class="pill-badge {% if message.kind == 'duty' %}pill-info{% else %}pill-muted{% endif %}">
+                                    {% if message.kind == 'duty' %}Görev Bildirimi{% else %}Hatırlatma{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <input type="time" name="time_{{ message.id }}" form="schedule-form"
+                                       class="form-control form-control-sm" value="{{ message.send_time }}">
+                            </td>
+                            <td>
+                                <input type="checkbox" class="form-check-input" name="enabled_{{ message.id }}"
+                                       form="schedule-form" {% if message.is_enabled %}checked{% endif %}>
+                            </td>
+                            <td>
+                                <textarea name="template_{{ message.id }}" form="schedule-form"
+                                          class="form-control form-control-sm" rows="2">{{ message.message_template }}</textarea>
+                            </td>
+                            <td class="text-end">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="send_message">
+                                    <input type="hidden" name="message_id" value="{{ message.id }}">
+                                    <button type="submit" class="btn btn-light btn-sm border"><i class="bi bi-send"></i> Şimdi Gönder</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-4">Zamanlanmış mesaj yok.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-body pt-3">
+                <form id="schedule-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_schedule">
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Kaydet</button>
+                </form>
+            </div>
+        </div>
+        <p class="text-muted small mt-2">
+            Görev bildirimi şablonu Discord'daki onay sorusudur; {name}, {first} veya {mention}
+            değişkenlerinden birini içermelidir. Diğer değişkenler: {emoji}, {duty}, {company}, {date}, {gun}, {gunUn}.
+        </p>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Görev Onayı</div>
+            <div class="card-body">
+                {% if confirmation_status %}
+                <p class="mb-2">
+                    <span class="pill-badge {% if confirmation_status.state == 'confirmed' %}pill-success{% elif confirmation_status.state == 'exhausted' %}pill-danger{% else %}pill-warning{% endif %}">
+                        {{ confirmation_status.label }}
                     </span>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small">Saat</label>
-                    <input type="time" name="time_{{ message.id }}" class="form-control form-control-sm" value="{{ message.send_time }}">
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label small">Etkin</label><br>
-                    <input type="checkbox" class="form-check-input" name="enabled_{{ message.id }}" {% if message.is_enabled %}checked{% endif %}>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small">Mesaj Metni</label>
-                    <textarea name="template_{{ message.id }}" class="form-control form-control-sm" rows="2">{{ message.message_template }}</textarea>
+                </p>
+                <p class="text-muted small">{{ confirmation_status.detail }}</p>
+                {% else %}
+                <p class="text-muted small">Henüz bir onay akışı yok.</p>
+                {% endif %}
+                <div class="d-flex gap-2 flex-wrap">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="start_flow">
+                        <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-play"></i> Görev Onayını Başlat</button>
+                    </form>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reset_today_flow">
+                        <button type="submit" class="btn btn-outline-warning btn-sm" data-confirm="Bugünün görev onayı sıfırlanıp yeniden sorulacak. Yarının görevini etkilemez. Emin misiniz?">
+                            <i class="bi bi-arrow-counterclockwise"></i> Bugünkü Görevlisini Tekrar Sor
+                        </button>
+                    </form>
                 </div>
             </div>
-            {% empty %}
-            <p class="text-muted">Henüz zamanlanmış mesaj yok.</p>
-            {% endfor %}
-            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Kaydet</button>
-        </form>
+        </div>
     </div>
 </div>
-<p class="text-muted small mt-3">
-    Görev bildirimi şablonu Discord'daki onay sorusudur; {name}, {first} veya {mention}
-    değişkenlerinden birini içermelidir. Diğer değişkenler: {emoji}, {duty}, {company}, {date}, {gun}, {gunUn}.
-</p>
 
 {% endblock %}

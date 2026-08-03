@@ -56,7 +56,7 @@ def set(key, value):
 
 
 def validate_discord_settings(data):
-    """Discord Ayarları sayfası: guild/kanal ID'leri + bot token."""
+    """Discord Ayarları sayfası: guild/kanal ID'leri + bot token + şirket adı."""
     errors = []
     to_save = {}
 
@@ -78,22 +78,17 @@ def validate_discord_settings(data):
     if token:
         to_save["discord_bot_token"] = token
 
-    if errors:
-        return errors, None
-    return [], to_save
-
-
-def validate_general_settings(data):
-    """Günlük Ayarlar sayfası: şirket adı."""
-    errors = []
     company_name = str(data.get("company_name") or "").strip()
     if not company_name:
         errors.append("Şirket adı boş bırakılamaz.")
     elif len(company_name) > 100:
         errors.append("Şirket adı en fazla 100 karakter olabilir.")
+    else:
+        to_save["company_name"] = company_name
+
     if errors:
         return errors, None
-    return [], {"company_name": company_name}
+    return [], to_save
 
 
 def save_settings(data):

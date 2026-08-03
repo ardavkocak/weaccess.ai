@@ -57,8 +57,6 @@ MODULES = [
             {"name": "Görev Geçmişi", "icon": "bi-clock-history", "url_name": "office_bot:history"},
             {"name": "Discord Ayarları", "icon": "bi-discord", "url_name": "office_bot:settings_discord"},
             {"name": "Bildirim Saatleri", "icon": "bi-alarm", "url_name": "office_bot:settings_schedule"},
-            {"name": "Günlük Ayarlar", "icon": "bi-sliders", "url_name": "office_bot:settings_general"},
-            {"name": "Test İşlemleri", "icon": "bi-terminal", "url_name": "office_bot:test_actions"},
         ],
     },
     {
