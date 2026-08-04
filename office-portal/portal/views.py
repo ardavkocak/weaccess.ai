@@ -57,30 +57,6 @@ class ModulePlaceholderView(AdminRequiredMixin, View):
         )
 
 
-class StaticPlaceholderView(AdminRequiredMixin, View):
-    """Raporlar/Ayarlar gibi tekil (modul listesinde olmayan) bos sayfalar icin."""
-
-    name = ""
-    icon = ""
-    description = ""
-
-    def get(self, request):
-        module = {"name": self.name, "icon": self.icon, "description": self.description}
-        return render(request, "modules/placeholder.html", {"module": module})
-
-
-ReportsView = StaticPlaceholderView.as_view(
-    name="Raporlar",
-    icon="bi-bar-chart",
-    description="Modüller entegre edildikçe burada ortak raporlama panosu oluşacak.",
-)
-
-SettingsView = StaticPlaceholderView.as_view(
-    name="Ayarlar",
-    icon="bi-gear",
-    description="Portal geneli ayarlar (tema, bildirim, entegrasyon) burada yönetilecek.",
-)
-
 # Not: Portal'in kendi placeholder "Profil" sayfasi kaldirildi. Zimmet
 # entegrasyonuyla birlikte gercek profil sayfasi artik apps.accounts
 # uzerinden geliyor (bkz. config/urls.py -> "accounts:profile").

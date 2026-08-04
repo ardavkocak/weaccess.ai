@@ -11,7 +11,7 @@ from integrations.base import BaseIntegration, IntegrationInfo, IntegrationStatu
 class MonthlyTrackingIntegration(BaseIntegration):
     info = IntegrationInfo(
         key="monthly_tracking",
-        name="Aylık Takip",
+        name="Çalışma Saati Hesaplama",
         source_project="aylik-takip",
         tech_stack="Django (Portal ile aynı süreç) + pdfplumber + pytesseract",
         planned_mode="native_port",

@@ -47,14 +47,6 @@
         {% endfor %}
 
         <div class="nav-section-title">Genel</div>
-        <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
-           href="{% url 'portal:reports' %}">
-            <i class="bi bi-bar-chart"></i> <span class="nav-label">Raporlar</span>
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
-           href="{% url 'portal:settings' %}">
-            <i class="bi bi-gear"></i> <span class="nav-label">Ayarlar</span>
-        </a>
         <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
            href="{% url 'accounts:profile' %}">
             <i class="bi bi-person-circle"></i> <span class="nav-label">Profil</span>

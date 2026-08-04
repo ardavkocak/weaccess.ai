@@ -10,7 +10,7 @@ from integrations.base import BaseIntegration, IntegrationInfo, IntegrationStatu
 class HrIntegration(BaseIntegration):
     info = IntegrationInfo(
         key="hr",
-        name="İK Otomasyonu",
+        name="Doğum & Yıl Takibi",
         source_project="ik-otomasyon",
         tech_stack="Django (Portal ile aynı süreç, PostgreSQL)",
         planned_mode="native_port",

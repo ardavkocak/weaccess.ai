@@ -76,7 +76,7 @@ MODULES = [
     },
     {
         "slug": "ik-otomasyon",
-        "name": "İK Otomasyonu",
+        "name": "Doğum & Yıl Takibi",
         "icon": "bi-person-badge",
         "color": "purple",
         "description": "Doğum günü ve iş yıldönümü hatırlatma otomasyonu.",
@@ -87,7 +87,7 @@ MODULES = [
     },
     {
         "slug": "aylik-takip",
-        "name": "Aylık Takip",
+        "name": "Çalışma Saati Hesaplama",
         "icon": "bi-calendar3",
         "color": "teal",
         "description": "Aylık çalışma saati ve izin durumu hesaplama aracı.",
