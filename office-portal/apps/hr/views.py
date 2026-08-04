@@ -5,10 +5,13 @@ from datetime import date
 
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
 from django.views import View
+from django.views.generic import CreateView, DeleteView, UpdateView
 
 from apps.inventory.mixins import AdminRequiredMixin
 
+from .forms import HrEmployeeForm
 from .models import HrEmployee, HrSettings
 from .services import reminder_service
 from .services.date_service import upcoming_trigger_date
@@ -128,6 +131,64 @@ class UploadView(AdminRequiredMixin, View):
                 "(logger: hr.pdf_parser).",
             )
         return redirect("hr:dashboard")
+
+
+class HrEmployeeCreateView(AdminRequiredMixin, CreateView):
+    """PDF disinda tek bir calisan kaydini elle eklemek icin (orn. eski kayitlarin sisteme gecirilmesi)."""
+
+    model = HrEmployee
+    form_class = HrEmployeeForm
+    template_name = "inventory/generic_form.html"
+    success_url = reverse_lazy("hr:dashboard")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Yeni Çalışan Ekle"
+        context["cancel_url"] = self.success_url
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"{self.object.full_name} başarıyla eklendi.")
+        return response
+
+
+class HrEmployeeUpdateView(AdminRequiredMixin, UpdateView):
+    """Mevcut (PDF'ten gelen veya elle eklenen) bir calisan kaydini duzenlemek icin."""
+
+    model = HrEmployee
+    form_class = HrEmployeeForm
+    template_name = "inventory/generic_form.html"
+    success_url = reverse_lazy("hr:dashboard")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Çalışan Düzenle: {self.object.full_name}"
+        context["cancel_url"] = self.success_url
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"{self.object.full_name} güncellendi.")
+        return response
+
+
+class HrEmployeeDeleteView(AdminRequiredMixin, DeleteView):
+    model = HrEmployee
+    template_name = "inventory/confirm_delete.html"
+    success_url = reverse_lazy("hr:dashboard")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Çalışanı Sil: {self.object.full_name}"
+        context["cancel_url"] = self.success_url
+        return context
+
+    def form_valid(self, form):
+        name = self.object.full_name
+        response = super().form_valid(form)
+        messages.success(self.request, f"{name} silindi.")
+        return response
 
 
 class SettingsView(AdminRequiredMixin, View):
