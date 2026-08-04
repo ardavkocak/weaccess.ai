@@ -1,0 +1,70 @@
+<%- include('../partials/head') %>
+
+<!-- Giriş ekranı: sol menü olmadan, ortalanmış tek kart. -->
+<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-900 to-brand-900 px-4 py-12">
+  <div class="w-full max-w-sm">
+
+    <!-- Logo -->
+    <div class="mb-8 text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-2xl shadow-lg">
+        ☕
+      </div>
+      <h1 class="mt-4 text-xl font-bold text-white"><%= companyName %></h1>
+      <p class="mt-1 text-sm text-slate-400">Görev Takip Sistemi</p>
+    </div>
+
+    <!-- Kart -->
+    <div class="rounded-2xl bg-white p-6 shadow-2xl sm:p-7">
+      <h2 class="text-base font-semibold text-slate-900">Yönetici Girişi</h2>
+      <p class="mt-1 text-xs text-slate-500">Devam etmek için giriş yapın.</p>
+
+      <% if (error) { %>
+        <div class="mt-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5" role="alert">
+          <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p class="text-xs text-rose-700"><%= error %></p>
+        </div>
+      <% } %>
+
+      <%
+        /* Bilgi mesajları (örn. bayat oturum yenilendiğinde). Giriş sayfası ana
+           şablonu kullanmadığı için flash'ı burada ayrıca gösteriyoruz. */
+      %>
+      <% (flashMessages || []).forEach((item) => { %>
+        <div class="mt-4 flex items-start gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2.5" role="status">
+          <svg class="mt-0.5 h-4 w-4 shrink-0 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p class="text-xs text-sky-700"><%= item.message %></p>
+        </div>
+      <% }); %>
+
+      <form method="POST" action="/giris" class="mt-5 space-y-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div>
+          <label for="username" class="mb-1.5 block text-xs font-medium text-slate-700">Kullanıcı Adı</label>
+          <input type="text" id="username" name="username" required autofocus
+                 autocomplete="username" value="<%= username %>"
+                 class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+        </div>
+
+        <div>
+          <label for="password" class="mb-1.5 block text-xs font-medium text-slate-700">Parola</label>
+          <input type="password" id="password" name="password" required
+                 autocomplete="current-password"
+                 class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+        </div>
+
+        <button type="submit"
+                class="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+          Giriş Yap
+        </button>
+      </form>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-slate-500">
+      Giriş bilgileri <code class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-slate-400">.env</code> dosyasında tanımlıdır.
+    </p>
+  </div>
+</div>
+
+</body>
+</html>

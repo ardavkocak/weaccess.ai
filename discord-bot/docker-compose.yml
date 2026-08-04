@@ -1,0 +1,28 @@
+# Hatırlatıcı Discord Bot — tek komutla çalıştırma.
+#
+#   docker compose up -d --build     → derle ve arka planda başlat
+#   docker compose logs -f           → günlükleri izle
+#   docker compose down              → durdur (veriler ./data içinde kalır)
+#
+# Ayarlar .env dosyasından okunur. .env yoksa .env.example'ı kopyalayıp doldurun.
+
+services:
+  app:
+    build: .
+    image: hatirlatici-bot:latest
+    container_name: c_hatirlatici-bot_app
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      # .env'de ne yazarsa yazsın, veritabanı konteyner içinde her zaman
+      # /app/data altında (aşağıdaki volume) olmalı ki kalıcı olsun.
+      DB_PATH: data/bot.db
+
+    volumes:
+      # Veritabanı host'ta kalıcı — konteyner silinse bile veri durur.
+      - ./data:/app/data
+      # Google servis hesabı anahtarı imaja gömülmez, çalışma anında bağlanır.
+      - ./credentials.json:/app/credentials.json:ro

@@ -1,0 +1,17 @@
+# Host'a ait sanal ortam — Linux imajında çalıştırılamaz (Windows .exe içerir)
+venv/
+
+# Çalışma anında volume ile bağlanır, imaja gömülmemeli
+.env
+credentials.json
+data/
+
+# Log ve önbellek
+bot.log
+__pycache__/
+*.pyc
+
+.git/
+.gitignore
+README.md
+BAKIM.md

@@ -1,0 +1,18 @@
+# Üretilen Excel çıktıları
+*.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Gizli bilgiler
+.env
+.env*
+service_account.json
+*.json.key
+
+# Sunucuya özel Docker Compose ayarları (port, env dosyası vb.)
+docker-compose.override.yml

@@ -1,0 +1,373 @@
+<%- include('../partials/layout-start') %>
+
+<!-- Hafta sonu / tatil bilgilendirmesi: otomatik görevler bugün çalışmıyor. -->
+<% if (schedulerStatus && schedulerStatus.workingDayToday === false) { %>
+  <div class="mb-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-amber-800">
+    <svg class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    <div>
+      <p class="text-sm font-medium">
+        <%= schedulerStatus.nonWorkingReason || 'Bugün çalışma günü değil.' %> Otomatik görevler çalışmıyor.
+      </p>
+      <p class="mt-0.5 text-xs">
+        Bugün otomatik mesaj gönderilmez ve görev sırası ilerlemez. Yine de aşağıdaki
+        <span class="font-medium">Görev Onayını Başlat</span> veya Ayarlar'daki <span class="font-medium">Gönder</span>
+        butonlarıyla elle gönderim yapabilirsiniz.
+      </p>
+    </div>
+  </div>
+<% } %>
+
+<% if (!dutyType) { %>
+  <!-- Hiç görev türü tanımlı değil (olağandışı; kayıt elle silinmişse) -->
+  <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-800">
+    <p class="font-medium">Tanımlı görev türü yok.</p>
+    <p class="mt-1 text-sm">Veritabanındaki görev türü kaydı bulunamadı. Sunucuyu yeniden başlatmak varsayılan "Çay" görevini yeniden oluşturacaktır.</p>
+  </div>
+<% } else { %>
+
+  <!-- ================= BUGÜNKÜ GÖREVLİ (ana kart) ================= -->
+  <section class="overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-brand-900 shadow-xl">
+    <div class="p-6 sm:p-8">
+
+      <div class="flex items-center gap-2 text-sm font-medium text-brand-200">
+        <span class="relative flex h-2 w-2">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-brand-400"></span>
+        </span>
+        Bugünkü <%= dutyType.name %> Görevlisi
+      </div>
+
+      <% if (overview.todayName) { %>
+        <div class="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex min-w-0 items-center gap-4">
+            <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl <%= avatarColor(overview.todayName) %> text-xl font-bold text-white shadow-lg sm:h-20 sm:w-20 sm:text-2xl">
+              <%= initials(overview.todayName) %>
+            </div>
+            <div class="min-w-0">
+              <p class="truncate text-2xl font-bold text-white sm:text-4xl">
+                <%= dutyType.emoji %> <%= overview.todayName %>
+              </p>
+              <p class="mt-1 text-sm text-slate-400"><%= todayLong %></p>
+              <% if (overview.isStandIn && overview.next) { %>
+                <%# Görevi sıranın sahibi değil, yerine ofiste olan biri yaptı: sıra yerinde kaldı. %>
+                <p class="mt-1 text-sm text-amber-300">
+                  Sıra <%= overview.next.full_name %> kişisinde kaldı; yarın yine ondan sorulacak.
+                </p>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Onay durumu rozeti -->
+          <div class="shrink-0">
+            <% if (confirmation && confirmation.state === 'confirmed') { %>
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1.5 text-xs font-medium text-emerald-300 ring-1 ring-emerald-500/30">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                Görevli kesinleşti
+              </span>
+            <% } else if (confirmation && confirmation.state === 'pending') { %>
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-sky-500/15 px-3 py-1.5 text-xs font-medium text-sky-300 ring-1 ring-sky-500/30">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 3v-3z"/></svg>
+                Discord'da onay bekleniyor
+              </span>
+            <% } else if (confirmation && confirmation.state === 'exhausted') { %>
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-500/15 px-3 py-1.5 text-xs font-medium text-rose-300 ring-1 ring-rose-500/30">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Bugün uygun kişi yok
+              </span>
+            <% } else { %>
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-xs font-medium text-amber-300 ring-1 ring-amber-500/30">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Onay bekleniyor (<%= dutyTime %>)
+              </span>
+            <% } %>
+          </div>
+        </div>
+      <% } else { %>
+        <%# İki farklı "görevli yok" durumu var ve karıştırılmamalı:
+            1) Hiç aktif çalışan yok  → önce personel eklenmeli.
+            2) Çalışan var ama bugün için görevli belirlenmemiş → normal durum;
+               görevli bir önceki iş günü 17:00'de belirlenir. %>
+        <div class="mt-5">
+          <p class="text-2xl font-bold text-white sm:text-3xl">Görevli atanmadı</p>
+          <% if (counts.active === 0) { %>
+            <p class="mt-2 text-sm text-slate-400">
+              Sırada aktif çalışan yok.
+              <a href="/personeller" class="font-medium text-brand-300 underline underline-offset-2 hover:text-brand-200">Personeller</a>
+              sayfasından en az bir çalışan ekleyin veya mevcut birini aktif yapın.
+            </p>
+          <% } else { %>
+            <p class="mt-2 text-sm text-slate-400">
+              Bugün için görevli belirlenmemiş. Görevli normalde bir önceki iş günü
+              saat <%= dutyTime %>'de sorulup kesinleşir.
+              <% if (overview.next) { %>
+                Sıradaki kişi <span class="font-medium text-slate-200"><%= overview.next.full_name %></span>.
+              <% } %>
+              Hemen belirlemek için <span class="font-medium text-slate-200">Görev Onayını Başlat</span> butonunu kullanabilirsiniz.
+            </p>
+          <% } %>
+        </div>
+      <% } %>
+
+      <!-- Eylemler -->
+      <div class="mt-7 flex flex-wrap gap-3 border-t border-white/10 pt-5">
+        <form method="POST" action="/gorev/<%= dutyType.id %>/sirayi-gec"
+              data-confirm="Bugünkü görev sıradaki aktif çalışana devredilecek. Devreden kişi sırasını kaybetmez. Onaylıyor musunuz?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="redirectTo" value="/">
+          <button type="submit"
+                  class="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  <%= counts.active < 2 ? 'disabled title="Sıra geçmek için en az 2 aktif çalışan gerekir."' : '' %>>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+            Sırayı Geç
+          </button>
+        </form>
+
+        <form method="POST" action="/gorev/<%= dutyType.id %>/simdi-gonder"
+              data-confirm="Bugünkü görev onay mesajı (butonlu) Discord kanalına şimdi gönderilecek. Onaylıyor musunuz?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="redirectTo" value="/">
+          <button type="submit"
+                  class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+                  <%# Yalnızca bot yapılandırılmamışsa kapalı. Eskiden "bugünkü
+                      görevli yoksa" da kapanıyordu; oysa akışı başlatmanın amacı
+                      tam olarak görevliyi belirlemek — o an kapalı olmamalı. %>
+                  <%= botStatus.state === 'unconfigured' ? 'disabled title="Discord botu yapılandırılmamış."' : '' %>>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            Görev Onayını Başlat
+          </button>
+        </form>
+
+        <%# Bugünkü görevlendirmeyi yeniden değerlendirir: hedef HER ZAMAN bugündür,
+            yarının (bir sonraki çalışma gününün) akışına dokunmaz. Dün "Evet" diyen
+            kişi bugün fiilen gelmemiş olabilir; bu yüzden her zaman tıklanabilir
+            (bugünün akışı zaten "kesinleşti" olsa bile). %>
+        <form method="POST" action="/gorev/<%= dutyType.id %>/onayi-sifirla"
+              data-confirm="Bugünün görev onayı sıfırlanıp yeniden sorulacak. Yarının görevini etkilemez. Onaylıyor musunuz?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="redirectTo" value="/">
+          <button type="submit"
+                  class="inline-flex items-center gap-2 rounded-lg bg-amber-500/15 px-4 py-2.5 text-sm font-semibold text-amber-200 ring-1 ring-amber-400/30 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-40"
+                  <%= botStatus.state === 'unconfigured' ? 'disabled title="Discord botu yapılandırılmamış."' : '' %>>
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Bugünkü Görevlisini Tekrar Sor
+          </button>
+        </form>
+      </div>
+
+      <!-- Bugünkü onay akışı: kim ne cevap verdi (denetim kaydı) -->
+      <% if (confirmation && confirmation.events && confirmation.events.length > 0) { %>
+        <div class="mt-5 border-t border-white/10 pt-4">
+          <p class="mb-2 text-xs font-medium text-slate-400">Bugünkü onay akışı</p>
+          <div class="flex flex-wrap gap-2">
+            <% confirmation.events.forEach((event) => { %>
+              <span class="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-xs text-slate-300 ring-1 ring-white/10">
+                <% if (event.answer === 'yes') { %>
+                  <span class="text-emerald-400">✅</span>
+                <% } else { %>
+                  <span class="text-rose-400">❌</span>
+                <% } %>
+                <span class="font-medium text-white"><%= event.candidate_name %></span>
+                <% if (event.discord_user_name) { %>
+                  <span class="text-slate-500">· <%= event.discord_user_name %></span>
+                <% } %>
+              </span>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </section>
+
+  <!-- ================= ÖZET KARTLAR ================= -->
+  <section class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+    <!-- Sıradaki görevli -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <svg class="h-4 w-4 text-brand-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        Sıradaki Görevli
+      </div>
+      <% if (overview.next) { %>
+        <div class="mt-3 flex items-center gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full <%= avatarColor(overview.next.full_name) %> text-xs font-bold text-white">
+            <%= initials(overview.next.full_name) %>
+          </div>
+          <p class="min-w-0 truncate text-lg font-semibold text-slate-900"><%= overview.next.full_name %></p>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">
+          Sıra yalnızca görevi yapan kişiyle ilerler; ofiste olmayan sırasını kaybetmez.
+        </p>
+      <% } else { %>
+        <p class="mt-3 text-lg font-semibold text-slate-400">—</p>
+        <p class="text-xs text-slate-400">Sırada başka aktif çalışan yok.</p>
+      <% } %>
+    </div>
+
+    <!-- Toplam çalışan -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Toplam Çalışan
+      </div>
+      <p class="mt-3 text-3xl font-bold text-slate-900"><%= counts.total %></p>
+      <p class="text-xs text-slate-500"><%= counts.passive %> pasif</p>
+    </div>
+
+    <!-- Aktif çalışan -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Aktif Çalışan
+      </div>
+      <p class="mt-3 text-3xl font-bold text-emerald-600"><%= counts.active %></p>
+      <p class="text-xs text-slate-500">Görev sırasında</p>
+    </div>
+  </section>
+
+  <!-- ================= SIRA + SİSTEM DURUMU ================= -->
+  <section class="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-3">
+
+    <!-- Görev sırası -->
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <h2 class="text-sm font-semibold text-slate-900">Görev Sırası</h2>
+        <a href="/gorev-sirasi" class="text-xs font-medium text-brand-600 hover:text-brand-700">Tümünü yönet →</a>
+      </div>
+
+      <% if (overview.queue.length === 0) { %>
+        <p class="px-5 py-10 text-center text-sm text-slate-500">
+          Henüz çalışan eklenmemiş.
+          <a href="/personeller" class="font-medium text-brand-600 hover:underline">İlk çalışanı ekleyin.</a>
+        </p>
+      <% } else { %>
+        <ul class="divide-y divide-slate-100">
+          <% overview.queue.forEach((employee, index) => { %>
+            <li class="flex items-center gap-3 px-5 py-3 <%= employee.is_active ? '' : 'opacity-50' %>">
+              <span class="w-5 shrink-0 text-xs font-medium text-slate-400"><%= index + 1 %></span>
+
+              <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full <%= employee.is_active ? avatarColor(employee.full_name) : 'bg-slate-300' %> text-[10px] font-bold text-white">
+                <%= initials(employee.full_name) %>
+              </div>
+
+              <span class="min-w-0 flex-1 truncate text-sm font-medium text-slate-800"><%= employee.full_name %></span>
+
+              <!-- Rozetler -->
+              <% if (employee.isToday) { %>
+                <span class="shrink-0 rounded-full bg-brand-100 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">Bugün</span>
+              <% } else if (employee.isNext) { %>
+                <span class="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">Sıradaki</span>
+              <% } %>
+              <% if (!employee.is_active) { %>
+                <span class="shrink-0 rounded-full bg-slate-200 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">Pasif</span>
+              <% } %>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+
+    <!-- Sağ sütun: sistem durumu + son geçmiş -->
+    <div class="space-y-5">
+
+      <!-- Sistem durumu -->
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-5 py-4">
+          <h2 class="text-sm font-semibold text-slate-900">Sistem Durumu</h2>
+        </div>
+        <dl class="space-y-3 p-5 text-sm">
+
+          <!-- Discord -->
+          <div class="flex items-center justify-between gap-3">
+            <dt class="text-slate-600">Discord Bot</dt>
+            <dd>
+              <%
+                const botStyles = {
+                  online:       'bg-emerald-100 text-emerald-700',
+                  error:        'bg-rose-100 text-rose-700',
+                  offline:      'bg-amber-100 text-amber-700',
+                  unconfigured: 'bg-slate-100 text-slate-600',
+                };
+              %>
+              <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold <%= botStyles[botStatus.state] %>">
+                <%= botStatus.label %>
+              </span>
+            </dd>
+          </div>
+
+          <!-- Zamanlayıcı -->
+          <div class="flex items-center justify-between gap-3">
+            <dt class="text-slate-600">Zamanlayıcı</dt>
+            <dd class="font-medium text-slate-900">
+              <% if (schedulerStatus.active) { %>
+                <%= schedulerStatus.scheduledCount %> mesaj kurulu
+              <% } else { %>
+                <span class="text-rose-600">Kapalı</span>
+              <% } %>
+            </dd>
+          </div>
+
+          <div class="flex items-center justify-between gap-3">
+            <dt class="text-slate-600">Saat dilimi</dt>
+            <dd class="font-medium text-slate-900"><%= schedulerStatus.timezone %></dd>
+          </div>
+        </dl>
+
+        <!-- Günlük mesaj takvimi -->
+        <div class="border-t border-slate-200 px-5 py-4">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Bugünün Takvimi</p>
+          <ul class="space-y-1.5">
+            <% schedulerStatus.messages.forEach((message) => { %>
+              <li class="flex items-center gap-2 text-xs">
+                <span class="font-mono font-semibold <%= message.running ? 'text-slate-900' : 'text-slate-400' %>">
+                  <%= message.time %>
+                </span>
+                <span class="min-w-0 flex-1 truncate <%= message.running ? 'text-slate-600' : 'text-slate-400 line-through' %>">
+                  <%= message.name %>
+                </span>
+                <% if (message.kind === 'duty') { %>
+                  <span class="shrink-0 rounded-full bg-brand-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-brand-700"
+                        title="Bu mesaj gönderildikten sonra sıra bir sonraki aktif çalışana geçer.">sıra</span>
+                <% } %>
+              </li>
+            <% }); %>
+          </ul>
+        </div>
+
+        <% if (botStatus.state !== 'online') { %>
+          <div class="border-t border-slate-200 px-5 py-3">
+            <p class="text-xs text-slate-500"><%= botStatus.detail %></p>
+            <a href="/ayarlar" class="mt-1 inline-block text-xs font-medium text-brand-600 hover:text-brand-700">Ayarlara git →</a>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Son görevler -->
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+          <h2 class="text-sm font-semibold text-slate-900">Son Görevler</h2>
+          <a href="/gorev-gecmisi" class="text-xs font-medium text-brand-600 hover:text-brand-700">Tümü →</a>
+        </div>
+
+        <% if (recentHistory.length === 0) { %>
+          <p class="px-5 py-8 text-center text-xs text-slate-500">Henüz görev kaydı yok.</p>
+        <% } else { %>
+          <ul class="divide-y divide-slate-100">
+            <% recentHistory.forEach((record) => { %>
+              <li class="flex items-center justify-between gap-3 px-5 py-3">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium text-slate-800"><%= record.employee_name %></p>
+                  <p class="text-xs text-slate-500"><%= record.dateShort %> · <%= record.duty_name %></p>
+                </div>
+                <% if (!record.notified) { %>
+                  <span class="shrink-0 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-700" title="Discord mesajı gönderilemedi">!</span>
+                <% } %>
+              </li>
+            <% }); %>
+          </ul>
+        <% } %>
+      </div>
+    </div>
+  </section>
+<% } %>
+
+<%- include('../partials/layout-end') %>

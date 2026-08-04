@@ -1,0 +1,14 @@
+# Bu dosyayı "docker-compose.override.yml" olarak kopyala ve kendi sunucuna
+# göre doldur. Gerçek dosya .gitignore'da olduğu için repoya asla gitmez.
+#
+#   cp docker-compose.override.yml.example docker-compose.override.yml
+#
+# Port ve ortam değişkenleri gibi sunucuya/ortama özgü değerler burada durur;
+# docker-compose.yml sabit kalır, bu dosya sunucudan sunucuya değişebilir.
+
+services:
+  web:
+    ports:
+      - "5000:5000"   # "DIŞ_PORT:5000" — dışa açılacak portu değiştirmek için sadece soldakini düzenle
+    env_file:
+      - .env

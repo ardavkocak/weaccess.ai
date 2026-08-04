@@ -1,0 +1,26 @@
+# Bağımlılıklar
+node_modules/
+
+# Ortam değişkenleri (gizli bilgiler — asla commit etmeyin)
+.env
+.env.local
+*.env.local
+
+# SQLite veritabanı ve WAL dosyaları
+data/
+ofis-data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Loglar
+*.log
+npm-debug.log*
+
+# Sistem / editör dosyaları
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+Makefile
