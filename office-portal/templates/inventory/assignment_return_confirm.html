@@ -16,6 +16,15 @@
                     {% endif %}
 
                     <div class="mb-3">
+                        <label class="form-label" for="{{ form.returned_date.id_for_label }}">{{ form.returned_date.label }}</label>
+                        {{ form.returned_date }}
+                        <div class="form-text">Varsayılan bugündür; eski kayıtları geriye dönük tarihle işlemek için değiştirebilirsiniz.</div>
+                        {% if form.returned_date.errors %}
+                        <div class="text-danger small mt-1">{{ form.returned_date.errors|join:" " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">{{ form.return_condition.label }}</label>
                         <div class="d-flex flex-column gap-1">
                             {% for radio in form.return_condition %}

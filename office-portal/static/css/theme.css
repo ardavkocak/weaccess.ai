@@ -396,10 +396,20 @@ a {
     border-radius: 1rem 1rem 0 0 !important;
 }
 
-.card,
+.card {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+/* Tum .card-body varyantlari (genel .card, .module-card, .hero-stat-card
+   icindekiler dahil) TEK bu kuraldan gelir — border-radius: 1rem, Bootstrap
+   "rounded-4" ile ayni. Alt secicilerde (orn. .module-card .card-body,
+   .hero-stat-card .card-body) yalniz padding degisir, radius HER YERDE
+   aynidir, ayrica tekrar tanimlanmaz. */
 .card-body {
     background-color: var(--card-bg);
     color: var(--text-primary);
+    border-radius: 1rem;
 }
 
 /* Şablonlarda kullanılan Bootstrap .bg-white / .text-dark / .bg-light
@@ -573,6 +583,7 @@ a {
 
 .table-modern tbody tr {
     border-color: var(--border-color);
+    font-size: 11px;
 }
 
 .table-modern tbody tr:hover {

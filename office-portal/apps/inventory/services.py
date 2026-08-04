@@ -136,12 +136,23 @@ def assign_device(
 
 @transaction.atomic
 def return_device(
-    *, assignment, returned_by, return_notes="", return_condition="", damage_description="", ip_address=None
+    *,
+    assignment,
+    returned_by,
+    returned_date=None,
+    return_notes="",
+    return_condition="",
+    damage_description="",
+    ip_address=None,
 ):
     """Bir zimmet kaydini iade olarak isaretler; adet otomatik stoga doner.
 
     Iade durumu (hasarsiz/hasarli/eksik) yalnizca iade tutanagina yazilmak uzere
     kaydedilir; toplam adet hicbir kosulda degismez.
+
+    `returned_date` verilmezse bugun kullanilir; eski kayitlari sisteme
+    gecirirken (geriye donuk tarihli iade) form uzerinden farkli bir tarih
+    gonderilebilir — bkz. AssignmentReturnForm.
     """
     assignment = Assignment.objects.select_for_update().get(pk=assignment.pk)
 
@@ -149,7 +160,7 @@ def return_device(
         raise ValidationError("Bu zimmet kaydi zaten iade edilmis.")
 
     assignment.returned = True
-    assignment.returned_date = timezone.localdate()
+    assignment.returned_date = returned_date or timezone.localdate()
     assignment.return_notes = return_notes
     assignment.return_condition = return_condition
     assignment.damage_description = damage_description

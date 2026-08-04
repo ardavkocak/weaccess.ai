@@ -198,13 +198,15 @@ class AssignmentReturnForm(BootstrapFormMixin, forms.ModelForm):
 
     class Meta:
         model = Assignment
-        fields = ["return_condition", "damage_description", "return_notes"]
+        fields = ["returned_date", "return_condition", "damage_description", "return_notes"]
         labels = {
+            "returned_date": "Iade Tarihi",
             "return_condition": "Iade Durumu",
             "damage_description": "Hasar / Eksik Aciklamasi",
             "return_notes": "Iade Notu",
         }
         widgets = {
+            "returned_date": HtmlDateInput(),
             "return_condition": forms.RadioSelect(),
             "damage_description": forms.Textarea(
                 attrs={"rows": 3, "placeholder": "Hasarli ya da eksik teslim edildiyse detayini yaziniz."}
@@ -216,6 +218,15 @@ class AssignmentReturnForm(BootstrapFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["return_condition"].required = True
         self.fields["return_condition"].choices = Assignment.ReturnCondition.choices
+        # Varsayilan olarak bugun gelir, ama eski kayitlari sisteme gecirirken
+        # (geriye donuk tarihli iade) degistirilebilir olsun diye zorunlu
+        # kilinmaz — bos birakilirsa services.return_device bugunu kullanir.
+        # NOT: field.initial degil form.initial['returned_date'] set edilir —
+        # ModelForm, henuz iade edilmemis instance'tan (returned_date=None)
+        # gelen None degeri initial dict'e zaten yazdigi icin field.initial
+        # devreye girmez; alanin dolu gorunmesi icin bu sart.
+        self.fields["returned_date"].required = False
+        self.initial["returned_date"] = self.instance.returned_date or timezone.localdate()
         self._apply_bootstrap_classes()
 
     def clean(self):

@@ -488,6 +488,7 @@ class AssignmentReturnView(AdminRequiredMixin, View):
                 services.return_device(
                     assignment=assignment,
                     returned_by=request.user,
+                    returned_date=form.cleaned_data.get("returned_date"),
                     return_notes=form.cleaned_data["return_notes"],
                     return_condition=form.cleaned_data["return_condition"],
                     damage_description=form.cleaned_data["damage_description"],
