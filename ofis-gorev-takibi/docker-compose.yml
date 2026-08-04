@@ -1,0 +1,45 @@
+# Ofis Görev Takip Sistemi — tek komutla çalıştırma.
+#
+#   docker compose up -d --build     → derle ve arka planda başlat
+#   docker compose logs -f           → günlükleri izle
+#   docker compose down              → durdur (veriler volume'da kalır)
+#
+# Ayarlar .env dosyasından okunur (env_file). Discord token, admin parolası,
+# SESSION_SECRET gibi değerler imaja gömülmez; yalnızca çalışma anında gelir.
+
+services:
+  app:
+    build: .
+    image: office-task-tracking:latest
+    container_name: c_office-task-tracking_app
+    restart: unless-stopped
+
+    # Tüm ayarlar buradan gelir. .env yoksa .env.example'ı kopyalayıp doldurun.
+    env_file:
+      - .env
+
+    environment:
+      # .env'de ne yazarsa yazsın, veritabanı konteyner içinde her zaman
+      # /app/data altında (aşağıdaki volume) olmalı ki kalıcı olsun.
+      DATABASE_FILE: data/office-task-tracking.sqlite
+      # .env'deki PORT değeri ne olursa olsun (örn. bare-metal geliştirmede
+      # 3001 kullanılmış olabilir), konteyner içinde HER ZAMAN 3000'de dinlesin
+      # — aşağıdaki port eşlemesi ve healthcheck bununla tutarlı olsun diye.
+      PORT: 3000
+
+    ports:
+      # Dışarıya 3000. PORT yukarıda sabitlendiği için .env'deki değer artık
+      # bu eşlemeyi bozamaz.
+      - "8110:3000"
+
+    volumes:
+      # Veritabanı ve oturumlar host'ta kalıcı — konteyner silinse bile veri durur.
+      - ./ofis-data:/app/data
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:'+(process.env.PORT||3000)+'/giris',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+

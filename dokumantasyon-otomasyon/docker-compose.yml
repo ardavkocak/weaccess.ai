@@ -1,0 +1,5 @@
+services:
+  web:
+    build: .
+    image: dokumantasyon-otomasyon:latest
+    restart: unless-stopped

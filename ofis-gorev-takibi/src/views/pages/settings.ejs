@@ -1,0 +1,545 @@
+<%- include('../partials/layout-start') %>
+
+<div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+
+  <!-- ================= AYAR FORMU ================= -->
+  <div class="lg:col-span-2">
+
+    <% if (formErrors.length > 0) { %>
+      <div class="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
+        <ul class="space-y-1 text-sm text-rose-700">
+          <% formErrors.forEach((error) => { %>
+            <li>• <%= error %></li>
+          <% }); %>
+        </ul>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/ayarlar" class="space-y-5">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <!-- ---------- Genel ---------- -->
+      <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-5 py-4">
+          <h2 class="text-sm font-semibold text-slate-900">Genel</h2>
+        </div>
+        <div class="p-5">
+          <label for="company_name" class="mb-1.5 block text-xs font-medium text-slate-700">
+            Şirket Adı <span class="text-rose-500">*</span>
+          </label>
+          <input type="text" id="company_name" name="company_name" required maxlength="100"
+                 value="<%= settings.company_name %>"
+                 class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+          <p class="mt-1.5 text-[11px] text-slate-500">Sol menüde, sayfa başlığında ve <code class="font-mono">{company}</code> değişkeninde görünür.</p>
+        </div>
+      </section>
+
+      <!-- ---------- Discord ---------- -->
+      <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-5 py-4">
+          <h2 class="text-sm font-semibold text-slate-900">Discord Ayarları</h2>
+          <p class="mt-0.5 text-xs text-slate-500">Bot kimliği ve mesajın gönderileceği yer.</p>
+        </div>
+        <div class="space-y-4 p-5">
+
+          <!-- Token -->
+          <div>
+            <label for="discord_bot_token" class="mb-1.5 block text-xs font-medium text-slate-700">
+              Discord Bot Token
+            </label>
+
+            <% if (tokenIsSet) { %>
+              <div class="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2">
+                <svg class="h-4 w-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="font-mono text-xs text-emerald-800"><%= settings.discord_bot_token_masked %></span>
+                <span class="text-[11px] text-emerald-700">kayıtlı</span>
+              </div>
+            <% } %>
+
+            <input type="password" id="discord_bot_token" name="discord_bot_token"
+                   autocomplete="off" spellcheck="false"
+                   placeholder="<%= tokenIsSet ? 'Değiştirmek için yeni token girin' : 'Bot token yapıştırın' %>"
+                   class="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+            <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500">
+              <% if (tokenIsSet) { %>Boş bırakırsanız mevcut token korunur. <% } %>
+              Token veritabanında saklanır, arayüzde asla tam gösterilmez.
+              <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer"
+                 class="font-medium text-brand-600 hover:underline">Developer Portal</a>'dan alabilirsiniz.
+            </p>
+          </div>
+
+          <!-- Sunucu (Guild) -->
+          <div>
+            <label for="discord_guild_id" class="mb-1.5 block text-xs font-medium text-slate-700">
+              Discord Sunucu (Guild) ID
+            </label>
+            <input type="text" id="discord_guild_id" name="discord_guild_id"
+                   inputmode="numeric" maxlength="20"
+                   value="<%= settings.discord_guild_id %>"
+                   placeholder="123456789012345678"
+                   class="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+            <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500">
+              Ofis sunucunuzun ID'si. Girilirse kanallar bu sunucu içinde aranır ve hatalar daha net bildirilir. İsteğe bağlı.
+            </p>
+          </div>
+
+          <!--
+            İKİ AYRI KANAL. Aynı bot kullanılır, yalnızca hedef kanal değişir:
+            görev mesajları ve yemek duyuruları birbirine karışmasın.
+          -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="discord_duty_channel_id" class="mb-1.5 block text-xs font-medium text-slate-700">
+                ☕ Görev Kanalı ID
+              </label>
+              <input type="text" id="discord_duty_channel_id" name="discord_duty_channel_id"
+                     inputmode="numeric" maxlength="20"
+                     value="<%= settings.discord_duty_channel_id %>"
+                     placeholder="123456789012345678"
+                     class="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+              <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500">
+                Sabahki <span class="font-medium">Evet / Hayır onay sorusu</span> buraya gönderilir.
+                Çay kontrolü ve gün sonu hatırlatmaları kanala değil, görevlinin özel mesajına gider.
+              </p>
+            </div>
+
+            <div>
+              <label for="discord_meal_channel_id" class="mb-1.5 block text-xs font-medium text-slate-700">
+                🍽️ Yemek Kanalı ID
+              </label>
+              <input type="text" id="discord_meal_channel_id" name="discord_meal_channel_id"
+                     inputmode="numeric" maxlength="20"
+                     value="<%= settings.discord_meal_channel_id %>"
+                     placeholder="123456789012345678"
+                     class="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+              <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500">
+                <span class="font-medium">Yarının yemek menüsü</span> ve katılım anketi buraya gönderilir.
+                Görev mesajları bu kanala düşmez.
+              </p>
+            </div>
+          </div>
+
+          <p class="rounded-lg bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-500">
+            <span class="font-medium text-slate-700">ID nasıl alınır?</span>
+            Discord → <span class="font-medium">Ayarlar → Gelişmiş → Geliştirici Modu</span>'nu açın, ardından
+            sunucuya veya kanala sağ tıklayıp <span class="font-medium">"ID'yi Kopyala"</span> deyin.
+          </p>
+        </div>
+      </section>
+
+      <!-- ---------- Mesaj takvimi ---------- -->
+      <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-5 py-4">
+          <h2 class="text-sm font-semibold text-slate-900">Otomatik Mesaj Saatleri</h2>
+          <p class="mt-0.5 text-xs text-slate-500">
+            Sistem çalıştığı sürece bu mesajlar her gün otomatik gönderilir. Saatini ve metnini
+            buradan değiştirebilirsiniz; kaydettiğinizde zamanlayıcı anında yenilenir —
+            sunucuyu yeniden başlatmanız gerekmez.
+          </p>
+        </div>
+
+        <ul class="divide-y divide-slate-100">
+          <% scheduledMessages.forEach((message) => { %>
+            <li class="p-5 <%= message.is_enabled ? '' : 'bg-slate-50/60' %>">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+
+                <!-- Saat -->
+                <div class="shrink-0">
+                  <label for="time_<%= message.id %>" class="mb-1.5 block text-xs font-medium text-slate-700">Saat</label>
+                  <input type="time" id="time_<%= message.id %>" name="time_<%= message.id %>" required
+                         value="<%= formValues['time_' + message.id] ?? message.send_time %>"
+                         class="w-32 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+                </div>
+
+                <!-- Bilgi -->
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="text-sm font-semibold text-slate-900"><%= message.name %></p>
+
+                    <% if (message.kind === 'duty') { %>
+                      <span class="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-700"
+                            title="Butonlu onay mesajı gönderir; 'Evet' alınınca görevli kesinleşir ve sıra ilerler.">
+                        Etkileşimli onay
+                      </span>
+                    <% } else { %>
+                      <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-600"
+                            title="Hatırlatma metni. Kanala değil, günün görevlisine özel mesaj olarak gider. Görev sırasına dokunmaz.">
+                        Hatırlatma · DM
+                      </span>
+                    <% } %>
+
+                    <% if (!message.is_enabled) { %>
+                      <span class="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">Kapalı</span>
+                    <% } %>
+                  </div>
+
+                  <!-- Mesaj metni (düzenlenebilir) -->
+                  <%
+                    // Hata sonrası admin'in yazdığı metin korunur; yoksa kayıtlı metin.
+                    const templateValue = formValues['template_' + message.id] ?? message.message_template;
+                  %>
+                  <div class="mt-2">
+                    <label for="template_<%= message.id %>" class="mb-1.5 block text-xs font-medium text-slate-700">
+                      <%= message.kind === 'duty' ? 'Soru metni' : 'Mesaj metni' %>
+                    </label>
+                    <textarea id="template_<%= message.id %>" name="template_<%= message.id %>"
+                              rows="<%= message.kind === 'duty' ? 3 : 5 %>" maxlength="1900" required
+                              class="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-[12px] leading-relaxed outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"><%= templateValue %></textarea>
+                  </div>
+
+                  <% if (message.kind === 'reminder') { %>
+                    <!-- Hatırlatmalar kanala değil, görevlinin DM kutusuna gider. -->
+                    <div class="mt-2 rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+                      <p class="text-[11px] text-slate-600">
+                        Bu metin <span class="font-medium">yalnızca o günün görevlisine özel mesaj (DM)</span>
+                        olarak gönderilir; kanala düşmez.
+                      </p>
+                      <p class="mt-1 text-[11px] text-slate-500">
+                        Gönderilebilmesi için görevlinin Çalışanlar sayfasında
+                        <span class="font-medium">Discord ID</span>'si tanımlı olmalı ve botla ortak bir sunucuda
+                        DM'lere açık olmalıdır. Sabahki onay henüz sonuçlanmadıysa (günün görevlisi belli değilse)
+                        hatırlatma gönderilmez.
+                      </p>
+                    </div>
+                  <% } %>
+
+                  <% if (message.kind === 'duty') { %>
+                    <!-- Onay akışında yalnızca İLK soru şablondan gelir; gerisi yapısaldır. -->
+                    <div class="mt-2 rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+                      <p class="text-[11px] text-slate-600">
+                        Bu metin, sabah Discord'a gönderilen <span class="font-medium">onay sorusudur</span>;
+                        altına <span class="rounded bg-emerald-600/80 px-1 py-0.5 text-[10px] text-white">✅ Evet</span>
+                        <span class="rounded bg-rose-600/80 px-1 py-0.5 text-[10px] text-white">❌ Hayır</span> butonları eklenir.
+                      </p>
+                      <p class="mt-1 text-[11px] text-slate-500">
+                        "Hayır" denince gönderilen "sıradaki kişi soruluyor" ve "görevli kesinleşti" metinleri
+                        akışın yapısına aittir, buradan değiştirilmez. Kimin sorulduğu belli olsun diye metin
+                        <code class="rounded bg-slate-200 px-1 font-mono">{name}</code>,
+                        <code class="rounded bg-slate-200 px-1 font-mono">{first}</code> veya
+                        <code class="rounded bg-slate-200 px-1 font-mono">{mention}</code> içermelidir.
+                      </p>
+                    </div>
+                  <% } %>
+
+                  <p class="mt-1.5 text-[11px] leading-relaxed text-slate-500">
+                    Değişkenler:
+                    <code class="rounded bg-slate-100 px-1 font-mono">{name}</code>
+                    <code class="rounded bg-slate-100 px-1 font-mono">{first}</code>
+                    <code class="rounded bg-slate-100 px-1 font-mono">{mention}</code>
+                    <code class="rounded bg-slate-100 px-1 font-mono">{emoji}</code>
+                    <code class="rounded bg-slate-100 px-1 font-mono">{duty}</code>
+                    <code class="rounded bg-slate-100 px-1 font-mono">{company}</code>
+                    <code class="rounded bg-slate-100 px-1 font-mono">{date}</code>
+                    — <span class="font-medium">{mention}</span> kişiyi etiketler (Discord ID girilmişse).
+                  </p>
+
+                  <div class="mt-2.5 flex flex-wrap items-center gap-3">
+                    <!-- Açık/kapalı -->
+                    <label class="flex cursor-pointer items-center gap-1.5 text-xs text-slate-600">
+                      <input type="checkbox" name="enabled_<%= message.id %>"
+                             <%= message.is_enabled ? 'checked' : '' %>
+                             class="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                      Etkin
+                    </label>
+
+                    <% if (message.running) { %>
+                      <span class="text-[11px] text-emerald-600">● zamanlandı</span>
+                    <% } %>
+
+                    <!--
+                      "Gönder": mesajı saatini beklemeden Discord'a gönderir.
+                      Ayarlar formunun içindeyiz; formaction ile bu buton, formu
+                      kaydetmek yerine gönderim uç noktasına POST eder. formnovalidate
+                      diğer alanların "required" kontrolünü atlar.
+                    -->
+                    <button type="submit"
+                            formaction="/ayarlar/mesaj/<%= message.id %>/gonder"
+                            formmethod="post"
+                            formnovalidate
+                            title="<%= message.kind === 'duty'
+                                     ? 'Onay sorusunu kanala şimdi gönderir.'
+                                     : 'Bu hatırlatmayı günün görevlisine özel mesaj olarak şimdi gönderir.' %>"
+                            class="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                            <%= tokenIsSet ? '' : 'disabled title="Önce Discord bot token girin."' %>>
+                      <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                      <%= message.kind === 'duty' ? 'Onayı Başlat' : 'Gönder' %>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
+        <p class="border-t border-slate-100 px-5 py-3 text-[11px] text-slate-500">
+          "Gönder" ile herhangi bir mesajı saatini beklemeden tek tıkla iletebilirsiniz. Bu butonları yalnızca yönetici görür.
+          Sabahki onay sorusu <span class="font-medium">kanala</span>, gün içi hatırlatmalar ise
+          <span class="font-medium">yalnızca günün görevlisinin özel mesaj kutusuna</span> gider.
+        </p>
+      </section>
+
+      <!-- Kaydet -->
+      <div class="flex justify-end">
+        <button type="submit"
+                class="rounded-lg bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700">
+          Ayarları Kaydet
+        </button>
+      </div>
+    </form>
+
+    <!-- Aşağıdakiler ayrı formlar: kaydet formunun içine gömülemez -->
+    <div class="mt-3 flex flex-wrap justify-end gap-4">
+      <% if (tokenIsSet) { %>
+        <form method="POST" action="/ayarlar/token-sil"
+              data-confirm="Kayıtlı Discord bot token silinecek ve bot bağlantısı kapatılacak. Onaylıyor musunuz?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="text-xs font-medium text-rose-600 hover:text-rose-700 hover:underline">
+            Kayıtlı token'ı sil
+          </button>
+        </form>
+      <% } %>
+    </div>
+
+    <!-- ---------- Yönetici hesabı (ayrı form: mevcut parola sorulur) ---------- -->
+    <section class="mt-5 rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div class="border-b border-slate-200 px-5 py-4">
+        <h2 class="text-sm font-semibold text-slate-900">Yönetici Girişi</h2>
+        <p class="mt-0.5 text-xs text-slate-500">
+          Panele giriş için kullandığınız kullanıcı adı ve parola.
+          <% if (!adminIsCustomized) { %>
+            Şu an <code class="rounded bg-slate-100 px-1 font-mono">.env</code> dosyasındaki değerler geçerli;
+            buradan kaydettiğinizde artık veritabanındaki bilgiler kullanılır.
+          <% } %>
+        </p>
+      </div>
+
+      <form method="POST" action="/ayarlar/yonetici" class="space-y-4 p-5" autocomplete="off">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="admin_username" class="mb-1.5 block text-xs font-medium text-slate-700">
+              Kullanıcı Adı <span class="text-rose-500">*</span>
+            </label>
+            <input type="text" id="admin_username" name="admin_username" required
+                   minlength="3" maxlength="50" autocomplete="username"
+                   value="<%= adminUsername %>"
+                   class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+          </div>
+
+          <div>
+            <label for="current_password" class="mb-1.5 block text-xs font-medium text-slate-700">
+              Mevcut Parola <span class="text-rose-500">*</span>
+            </label>
+            <input type="password" id="current_password" name="current_password" required
+                   autocomplete="current-password" placeholder="••••••••"
+                   class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+            <p class="mt-1.5 text-[11px] text-slate-500">Kimliğinizi doğrulamak için her değişiklikte gerekir.</p>
+          </div>
+
+          <div>
+            <label for="new_password" class="mb-1.5 block text-xs font-medium text-slate-700">Yeni Parola</label>
+            <input type="password" id="new_password" name="new_password"
+                   minlength="<%= minPasswordLength %>" autocomplete="new-password" placeholder="En az <%= minPasswordLength %> karakter"
+                   class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+            <p class="mt-1.5 text-[11px] text-slate-500">Boş bırakırsanız parola değişmez, yalnızca kullanıcı adı güncellenir.</p>
+          </div>
+
+          <div>
+            <label for="new_password_repeat" class="mb-1.5 block text-xs font-medium text-slate-700">Yeni Parola (Tekrar)</label>
+            <input type="password" id="new_password_repeat" name="new_password_repeat"
+                   minlength="<%= minPasswordLength %>" autocomplete="new-password" placeholder="••••••••"
+                   class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+          <p class="text-[11px] text-slate-500">
+            Parola veritabanında <span class="font-medium">scrypt</span> ile şifrelenmiş olarak saklanır; düz metin tutulmaz.
+          </p>
+          <button type="submit"
+                  class="shrink-0 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700">
+            Bilgileri Güncelle
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- ================= DURUM PANELİ ================= -->
+  <div class="lg:col-span-1">
+    <div class="sticky top-24 space-y-5">
+
+      <!-- Bağlantı durumu -->
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-5 py-4">
+          <h2 class="text-sm font-semibold text-slate-900">Bağlantı Durumu</h2>
+        </div>
+
+        <div class="space-y-4 p-5">
+          <%
+            const botStyles = {
+              online:       { dot: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50' },
+              error:        { dot: 'bg-rose-500',    text: 'text-rose-700',    bg: 'bg-rose-50' },
+              offline:      { dot: 'bg-amber-500',   text: 'text-amber-700',   bg: 'bg-amber-50' },
+              unconfigured: { dot: 'bg-slate-400',   text: 'text-slate-600',   bg: 'bg-slate-50' },
+            };
+            const style = botStyles[botStatus.state];
+          %>
+          <div class="rounded-lg <%= style.bg %> p-3">
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full <%= style.dot %>"></span>
+              <span class="text-sm font-semibold <%= style.text %>"><%= botStatus.label %></span>
+            </div>
+            <p class="mt-1 text-[11px] leading-relaxed text-slate-600"><%= botStatus.detail %></p>
+          </div>
+
+          <%
+            /*
+              Botun ÜYE OLDUĞU sunucular.
+              "Unknown Guild" hatasının nedeni neredeyse her zaman burada görünür:
+              Ayarlar'a girilen ID bu listede yoksa ID yanlıştır ya da bot o
+              sunucuya davet edilmemiştir. Doğru ID'yi kopyalanabilir biçimde
+              göstermek, kullanıcıyı Discord'da ID aramaktan kurtarır.
+            */
+            const guilds = botStatus.guilds || [];
+          %>
+          <% if (guilds.length > 0) { %>
+            <div>
+              <p class="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Botun bulunduğu sunucular
+              </p>
+              <ul class="space-y-1.5">
+                <% guilds.forEach((guild) => { %>
+                  <% const isMatch = guild.id === botStatus.settingsGuildId; %>
+                  <li class="rounded-lg border px-2.5 py-2 <%= isMatch ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50' %>">
+                    <div class="flex items-center gap-1.5">
+                      <span class="truncate text-xs font-medium text-slate-800"><%= guild.name %></span>
+                      <% if (isMatch) { %>
+                        <span class="shrink-0 text-[10px] font-bold text-emerald-600">✓ seçili</span>
+                      <% } %>
+                    </div>
+                    <code class="mt-0.5 block select-all font-mono text-[10px] text-slate-500"><%= guild.id %></code>
+                  </li>
+                <% }); %>
+              </ul>
+
+              <% if (botStatus.settingsGuildId && !botStatus.guildIdMatches) { %>
+                <p class="mt-2 rounded-lg bg-rose-50 px-2.5 py-2 text-[11px] leading-relaxed text-rose-700">
+                  Ayarlardaki Guild ID (<code class="font-mono"><%= botStatus.settingsGuildId %></code>)
+                  bu listede yok. Yukarıdaki ID'lerden birini kopyalayıp Guild ID alanına yapıştırın
+                  veya alanı boş bırakın.
+                </p>
+              <% } %>
+            </div>
+          <% } else if (botStatus.state === 'online' || botStatus.state === 'error') { %>
+            <p class="rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-relaxed text-amber-800">
+              Bot hiçbir sunucuda değil. Developer Portal → OAuth2 → URL Generator ile
+              <span class="font-medium">bot</span> kapsamını seçip üretilen bağlantıdan botu
+              sunucunuza ekleyin.
+            </p>
+          <% } %>
+
+          <form method="POST" action="/ayarlar/test">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit"
+                    class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    <%= tokenIsSet ? '' : 'disabled title="Önce bot token girin."' %>>
+              Bağlantıyı Test Et
+            </button>
+          </form>
+
+          <p class="text-center text-[10px] text-slate-400">
+            Ayrıntılı teşhis için: <code class="font-mono">npm run discord:teshis</code>
+          </p>
+        </div>
+      </div>
+
+      <!-- Zamanlayıcı -->
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-5 py-4">
+          <h2 class="text-sm font-semibold text-slate-900">Zamanlayıcı</h2>
+        </div>
+
+        <div class="p-5">
+          <% if (schedulerStatus.workingDayToday === false) { %>
+            <div class="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-800">
+              <%= schedulerStatus.nonWorkingReason || 'Bugün çalışma günü değil.' %>
+              Otomatik görevler bugün çalışmaz; aşağıdaki "Gönder" butonları yine de çalışır.
+            </div>
+          <% } %>
+
+          <div class="mb-3 flex items-center justify-between text-xs">
+            <span class="text-slate-500">Durum</span>
+            <span class="font-medium <%= schedulerStatus.active ? 'text-emerald-600' : 'text-rose-600' %>">
+              <%= schedulerStatus.active ? schedulerStatus.scheduledCount + ' mesaj kurulu' : 'Kapalı' %>
+            </span>
+          </div>
+          <div class="mb-3 flex items-center justify-between text-xs">
+            <span class="text-slate-500">Çalışma günleri</span>
+            <span class="font-medium text-slate-900">Pazartesi – Cuma</span>
+          </div>
+          <div class="mb-3 flex items-center justify-between text-xs">
+            <span class="text-slate-500">Saat dilimi</span>
+            <span class="font-medium text-slate-900"><%= schedulerStatus.timezone %></span>
+          </div>
+
+          <!-- Günlük takvim özeti + tek tek test gönderimi -->
+          <ul class="space-y-1.5 border-t border-slate-100 pt-3">
+            <% schedulerStatus.messages.forEach((message) => { %>
+              <li class="flex items-center justify-between gap-2">
+                <div class="flex min-w-0 items-center gap-2">
+                  <span class="font-mono text-xs font-semibold <%= message.running ? 'text-slate-900' : 'text-slate-400' %>">
+                    <%= message.time %>
+                  </span>
+                  <span class="truncate text-[11px] <%= message.running ? 'text-slate-600' : 'text-slate-400 line-through' %>">
+                    <%= message.name %>
+                  </span>
+                </div>
+
+                <form method="POST" action="/ayarlar/mesaj/<%= message.id %>/gonder" class="shrink-0"
+                      data-confirm="&quot;<%= message.name %>&quot; mesajı şimdi gönderilecek (onay sorusu kanala, hatırlatmalar günün görevlisine özel mesajla). Onaylıyor musunuz?">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="redirectTo" value="/ayarlar">
+                  <button type="submit"
+                          class="rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-30"
+                          <%= tokenIsSet ? '' : 'disabled' %>
+                          title="Şimdi gönder (test)">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                  </button>
+                </form>
+              </li>
+            <% }); %>
+          </ul>
+
+          <% if (schedulerStatus.lastRun) { %>
+            <div class="mt-3 border-t border-slate-100 pt-3">
+              <p class="text-[11px] text-slate-500">Son çalışma</p>
+              <p class="mt-0.5 text-[11px] font-medium text-slate-900">
+                <%= new Intl.DateTimeFormat('tr-TR', { dateStyle: 'short', timeStyle: 'short', timeZone: schedulerStatus.timezone }).format(new Date(schedulerStatus.lastRun.at)) %>
+                — <%= schedulerStatus.lastRun.name %>
+              </p>
+              <p class="mt-0.5 text-[11px] <%= schedulerStatus.lastRun.ok ? 'text-emerald-600' : 'text-rose-600' %>">
+                <%= schedulerStatus.lastRun.ok ? '✓' : '✗' %> <%= schedulerStatus.lastRun.message %>
+              </p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Yardım -->
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+        <h3 class="text-xs font-semibold text-slate-900">Bot kurulumu</h3>
+        <ol class="mt-2 space-y-1.5 text-[11px] leading-relaxed text-slate-600">
+          <li>1. Developer Portal'da uygulama ve bot oluşturun.</li>
+          <li>2. Bot token'ını kopyalayıp buraya girin.</li>
+          <li>3. OAuth2 → URL Generator'da <span class="font-medium">bot</span> kapsamını ve <span class="font-medium">Send Messages</span> iznini seçin.</li>
+          <li>4. Üretilen bağlantıyla botu sunucunuza ekleyin.</li>
+          <li>5. Sunucu ve kanal ID'sini girip "Bağlantıyı Test Et" deyin.</li>
+        </ol>
+        <p class="mt-2.5 text-[11px] text-slate-500">Ayrıntılar için README.md dosyasına bakın.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/layout-end') %>

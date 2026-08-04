@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    image: aylik-takip-ajani:latest
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production

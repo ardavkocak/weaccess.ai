@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banka Sözleşme &amp; Form Otomasyonu</title>
+<style>
+  :root {
+    --mavi: #1f4e78;
+    --mavi-acik: #2e6da4;
+    --bg: #f5f7fa;
+    --kart-bg: #ffffff;
+    --metin: #1c2b36;
+    --gri: #6b7785;
+    --kenar: #dfe4ea;
+    --yesil: #1e7e34;
+    --kirmizi: #b02a2a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--metin);
+  }
+  header {
+    background: linear-gradient(135deg, var(--mavi), var(--mavi-acik));
+    color: #fff;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+  header h1 { margin: 0 0 .3rem; font-size: 1.6rem; }
+  header p { margin: 0; opacity: .85; font-size: .95rem; }
+  main {
+    max-width: 720px;
+    margin: -1.5rem auto 2rem;
+    padding: 0 1rem;
+  }
+  .kart {
+    background: var(--kart-bg);
+    border: 1px solid var(--kenar);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    margin-bottom: 1.25rem;
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    font-size: .9rem;
+    margin: 0 0 .35rem;
+  }
+  input[type="text"], input[type="url"] {
+    width: 100%;
+    padding: .6rem .75rem;
+    border: 1px solid var(--kenar);
+    border-radius: 6px;
+    font-size: .95rem;
+    margin-bottom: 1rem;
+  }
+  input:focus { outline: 2px solid var(--mavi-acik); outline-offset: 1px; }
+  .checkbox-satir {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: 1.1rem;
+    font-size: .9rem;
+    color: var(--gri);
+  }
+  .checkbox-satir input { width: auto; margin: 0; }
+  button {
+    width: 100%;
+    background: var(--mavi);
+    color: #fff;
+    border: none;
+    padding: .75rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover { background: var(--mavi-acik); }
+  .yardim { font-size: .8rem; color: var(--gri); margin-top: -.6rem; margin-bottom: 1rem; }
+
+  .durum { padding: .9rem 1rem; border-radius: 8px; margin-bottom: 1.25rem; font-size: .92rem; }
+  .durum.hata { background: #fdecea; color: var(--kirmizi); border: 1px solid #f3c2c2; }
+  .durum.basari { background: #e9f7ef; color: var(--yesil); border: 1px solid #b7e4c7; }
+
+  .ozet { display: flex; gap: .6rem; flex-wrap: wrap; margin: .75rem 0 1rem; }
+  .rozet {
+    background: #eef3f8; color: var(--mavi);
+    padding: .3rem .7rem; border-radius: 999px; font-size: .82rem; font-weight: 600;
+  }
+  .tablo-kutu {
+    height: 301px;
+    overflow: hidden;
+    overflow-y: scroll;
+    border: 1px solid var(--kenar);
+    border-radius: 8px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--kenar); }
+  th {
+    color: var(--gri);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    background: var(--kart-bg);
+  }
+  td.baslik-hucre { max-width: 320px; }
+  td a { color: var(--mavi-acik); text-decoration: none; }
+  td a:hover { text-decoration: underline; }
+  .etiket { font-size: .75rem; padding: .15rem .5rem; border-radius: 5px; background: #eef3f8; color: var(--mavi); }
+
+  .sekme-alt-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    margin-top: 1rem;
+    padding: .75rem;
+    background: #eef3f8;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--mavi);
+    font-weight: 600;
+    font-size: .92rem;
+  }
+  .sekme-alt-link:hover { background: #e1ecf6; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Banka Sözleşme &amp; Form Otomasyonu</h1>
+    <p>Sayfa linkini yapıştır, belgeleri Google Sheets'e otomatik aktar.</p>
+  </header>
+
+  <main>
+    <div class="kart">
+      <form method="post">
+        <label for="banka_adi">Banka Adı</label>
+        <input type="text" id="banka_adi" name="banka_adi" placeholder="Örn. T-Bank" required
+               value="{{ request.form.get('banka_adi', '') }}">
+
+        <label for="sayfa_url">Sözleşmeler ve Formlar Sayfası URL'si</label>
+        <input type="url" id="sayfa_url" name="sayfa_url"
+               placeholder="https://www.banka.com.tr/sozlesmeler-ve-formlar"
+               required value="{{ request.form.get('sayfa_url', '') }}">
+
+        <div class="checkbox-satir">
+          <input type="checkbox" id="zorla_tarayici" name="zorla_tarayici"
+                 {% if request.form.get('zorla_tarayici') %}checked{% endif %}>
+          <label for="zorla_tarayici" style="margin:0; font-weight:400;">
+            Tarayıcı ile aç (JS) — belgeler ilk denemede bulunamazsa bunu işaretleyip tekrar dene
+          </label>
+        </div>
+
+        <button type="submit">Belgeleri Çek ve Sheets'e Yaz</button>
+      </form>
+    </div>
+
+    {% if hata %}
+      <div class="durum hata">⚠ {{ hata }}</div>
+    {% endif %}
+
+    {% if sonuc %}
+      <div class="kart">
+        <div class="tablo-kutu">
+          <table>
+            <thead>
+              <tr><th>Kategori</th><th>Başlık</th><th>Tür</th></tr>
+            </thead>
+            <tbody>
+              {% for b in sonuc.belgeler %}
+              <tr>
+                <td><span class="etiket">{{ b.kategori }}</span></td>
+                <td class="baslik-hucre"><a href="{{ b.url }}" target="_blank" rel="noopener">{{ b.baslik }}</a></td>
+                <td>{{ b.tur }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <a class="sekme-alt-link" href="{{ sonuc.sekme_url }}" target="_blank" rel="noopener">
+          Google Sheets'te sekmeyi aç →
+        </a>
+      </div>
+
+      <div class="durum basari">
+        <strong>{{ sonuc.banka_adi }}</strong> için {{ sonuc.toplam }} belge Google Sheets'e yazıldı.
+        <div class="ozet">
+          <span class="rozet">Sözleşme: {{ sonuc.sozlesme }}</span>
+          <span class="rozet">Form: {{ sonuc.form }}</span>
+          {% if sonuc.diger %}<span class="rozet">Diğer: {{ sonuc.diger }}</span>{% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </main>
+</body>
+</html>

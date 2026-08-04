@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aylik Calisma & Izin Takip</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 32px 16px;
+      color: #1a1a2e;
+    }
+    .kart {
+      background: #fff;
+      width: 100%;
+      max-width: 900px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      padding: 32px;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 6px; }
+    .alt { color: #666; font-size: .9rem; margin-bottom: 24px; }
+    .grup { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; margin-bottom: 8px; font-size: .95rem; }
+    .ipucu { font-weight: 400; color: #888; font-size: .8rem; }
+    input[type="file"], select {
+      width: 100%;
+      padding: 12px;
+      border: 2px dashed #cbd5e0;
+      border-radius: 10px;
+      background: #f7fafc;
+      font-size: .9rem;
+      cursor: pointer;
+    }
+    select { border-style: solid; cursor: default; }
+    .satir { display: flex; gap: 12px; }
+    .satir > div { flex: 1; }
+    button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: transform .1s, opacity .2s;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    #sonuc { margin-top: 28px; }
+    .ozet-bilgi {
+      background: #edf2f7;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: .9rem;
+      color: #444;
+      margin-bottom: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+    }
+    .ozet-bilgi b { color: #2d3748; }
+    .tablo-sar { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th, td { padding: 12px 10px; text-align: right; border-bottom: 1px solid #e2e8f0; }
+    th:first-child, td:first-child { text-align: left; }
+    thead th {
+      background: #f7fafc;
+      font-weight: 700;
+      color: #4a5568;
+      position: sticky; top: 0;
+    }
+    tbody tr:hover { background: #fafbfc; }
+    .ad { font-weight: 700; color: #2d3748; }
+    .rozet {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .rozet.tam { background: #38a169; }
+    .rozet.fazla { background: #dd6b20; }
+    .rozet.eksik { background: #e53e3e; }
+    .hata {
+      background: #fff5f5;
+      color: #c53030;
+      border-left: 5px solid #e53e3e;
+      padding: 16px;
+      border-radius: 10px;
+    }
+    .uyari {
+      background: #fffaf0;
+      color: #975a16;
+      border-left: 5px solid #dd6b20;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-top: 16px;
+      font-size: .88rem;
+    }
+    .yukleniyor { text-align: center; color: #667eea; font-weight: 600; }
+    details { margin-top: 16px; font-size: .85rem; color: #666; }
+    summary { cursor: pointer; font-weight: 600; }
+    .resmi-liste { margin: 8px 0 0 16px; }
+
+    /* Genisletilebilir personel satiri */
+    tr.pers { cursor: pointer; }
+    tr.pers:hover { background: #f0f4ff; }
+    .ac-ok { display: inline-block; width: 14px; color: #667eea; transition: transform .15s; font-size: .8rem; }
+    tr.acik .ac-ok { transform: rotate(90deg); }
+    tr.detay > td { background: #f7fafc; padding: 0; border-bottom: 2px solid #e2e8f0; }
+    tr.detay .detay-ic { padding: 14px 18px; text-align: left; }
+    .detay-baslik { font-weight: 700; color: #4a5568; margin: 10px 0 6px; font-size: .82rem; text-transform: uppercase; letter-spacing: .03em; }
+    .detay-baslik:first-child { margin-top: 0; }
+    .kirilimlar { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: .88rem; }
+    .kirilimlar span b { color: #2d3748; }
+    .izin-satir {
+      display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+      font-size: .88rem; padding: 6px 10px; background: #fff;
+      border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 6px;
+    }
+    .izin-tip {
+      background: #ebf4ff; color: #2b6cb0; padding: 2px 9px;
+      border-radius: 999px; font-size: .78rem; font-weight: 600;
+    }
+    .mini { color: #a0aec0; font-size: .8rem; }
+    .yok { color: #a0aec0; font-size: .86rem; }
+  </style>
+</head>
+<body>
+  <div class="kart">
+    <h1>Aylik Calisma & Izin Takip</h1>
+    <p class="alt">Muafiyet Raporu (PDF) + izin gorseli ile kisi bazli calisma / izin kontrolu. Gunluk 9 saat esas alinir.</p>
+
+    <form id="form">
+      <div class="grup">
+        <label>1. Calisma Dosyasi (Muafiyet Raporu)
+          <span class="ipucu">(PDF veya Word)</span>
+        </label>
+        <input type="file" name="calismaDosyasi" accept=".pdf,.doc,.docx" required />
+      </div>
+
+      <div class="grup">
+        <label>2. Izin Gorseli
+          <span class="ipucu">(PNG / JPEG / WebP — izin kayitlari listesi)</span>
+        </label>
+        <input type="file" name="izinGorseli" accept="image/png,image/jpeg,image/webp" required />
+      </div>
+
+      <div class="grup satir">
+        <div>
+          <label>Yil</label>
+          <select name="yil" id="yil"></select>
+        </div>
+        <div>
+          <label>Ay</label>
+          <select name="ay" id="ay"></select>
+        </div>
+      </div>
+
+      <button type="submit" id="btn">Hesapla</button>
+    </form>
+
+    <div id="sonuc"></div>
+  </div>
+
+  <script>
+    const yilSel = document.getElementById('yil');
+    const aySel = document.getElementById('ay');
+    const simdi = new Date();
+    for (let y = 2026; y <= 2028; y++) {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      if (y === simdi.getFullYear()) o.selected = true;
+      yilSel.appendChild(o);
+    }
+    const aylar = ['Ocak','Subat','Mart','Nisan','Mayis','Haziran',
+      'Temmuz','Agustos','Eylul','Ekim','Kasim','Aralik'];
+    aylar.forEach((ad, i) => {
+      const o = document.createElement('option');
+      o.value = i + 1; o.textContent = ad;
+      if (i === simdi.getMonth()) o.selected = true;
+      aySel.appendChild(o);
+    });
+
+    const form = document.getElementById('form');
+    const btn = document.getElementById('btn');
+    const sonuc = document.getElementById('sonuc');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      btn.textContent = 'Hesaplaniyor...';
+      sonuc.innerHTML = '<p class="yukleniyor">Dosyalar okunuyor, lutfen bekleyin (OCR biraz surebilir)...</p>';
+
+      try {
+        const fd = new FormData(form);
+        const resp = await fetch('/hesapla', { method: 'POST', body: fd });
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          sonuc.innerHTML = '<div class="hata"><strong>Hata:</strong> ' +
+            escapeHtml(data.hata || 'Bilinmeyen hata') + '</div>';
+          return;
+        }
+        gosterSonuc(data);
+      } catch (err) {
+        sonuc.innerHTML = '<div class="hata"><strong>Baglanti hatasi:</strong> ' + escapeHtml(err.message) + '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Hesapla';
+      }
+    });
+
+    function gosterSonuc(data) {
+      const o = data.ozet;
+      const ayAd = aylar[o.ay - 1];
+
+      let resmiHtml = o.resmiTatiller.length
+        ? '<ul class="resmi-liste">' + o.resmiTatiller.map(t =>
+            '<li>' + t.tarih + ' — ' + escapeHtml(t.ad) + '</li>').join('') + '</ul>'
+        : '<p style="margin-top:6px;color:#888">Bu ay hafta ici resmi tatil yok.</p>';
+
+      const satirlar = o.personeller.map((p, idx) => {
+        const durumMetin = { tam: 'Tam', fazla: 'Fazla', eksik: 'Eksik' }[p.durum];
+
+        // Ana satir (tiklaninca detay acilir).
+        const ana = '<tr class="pers" data-idx="' + idx + '">' +
+          '<td class="ad"><span class="ac-ok">▶</span> ' + escapeHtml(p.isim) + '</td>' +
+          '<td>' + p.calismaSaat + '</td>' +
+          '<td>' + p.izinGun + ' gun<br><small class="mini">' + p.izinSaat + ' saat</small></td>' +
+          '<td>' + o.resmiGun + ' gun<br><small class="mini">' + o.resmiSaat + ' saat</small></td>' +
+          '<td>' + p.gerekliSaat + '</td>' +
+          '<td><span class="rozet ' + p.durum + '">' + durumMetin +
+            ' ' + (p.fark >= 0 ? '+' : '') + p.fark + '</span></td>' +
+        '</tr>';
+
+        // Izin kayitlari (tarih araligi + tip).
+        let izinHtml;
+        if (p.izinKayitlari && p.izinKayitlari.length) {
+          izinHtml = p.izinKayitlari.map(iz =>
+            '<div class="izin-satir">' +
+              '<span class="izin-tip">' + escapeHtml(iz.tip || 'Izin') + '</span>' +
+              '<span>Cikis: <b>' + escapeHtml(iz.baslangic) + '</b> · Donus: <b>' + escapeHtml(iz.bitis) + '</b></span>' +
+              '<span class="mini">' + iz.isGunu + ' gun izin (' + (iz.isGunu * o.gunlukSaat) + ' saat) · donus gunu calisir, resmi tatil dahil degil</span>' +
+            '</div>').join('');
+        } else {
+          izinHtml = '<div class="yok">Bu personel icin izin kaydi bulunamadi.</div>';
+        }
+
+        // Saat kirilimlari (PDF Muafiyet Raporu sutunlari).
+        const kirilim = '<div class="kirilimlar">' +
+          '<span><b>Bolgede Bulundugu Sure:</b> ' + (p.bolgedeSaat ?? 0) + ' saat</span>' +
+          '<span><b>Muafiyete Konu:</b> ' + (p.muafiyetSaat ?? 0) + ' saat</span>' +
+          '<span><b>Toplam Sure:</b> ' + p.calismaSaat + ' saat</span>' +
+        '</div>';
+
+        const detay = '<tr class="detay" data-detay="' + idx + '" style="display:none">' +
+          '<td colspan="6"><div class="detay-ic">' +
+            '<div class="detay-baslik">Calisma Saati Kirilimi (PDF)</div>' + kirilim +
+            '<div class="detay-baslik">Izin Kayitlari (Gorsel)</div>' + izinHtml +
+          '</div></td>' +
+        '</tr>';
+
+        return ana + detay;
+      }).join('');
+
+      let uyari = '';
+      if (o.eslesmeyenIzinler && o.eslesmeyenIzinler.length) {
+        uyari = '<div class="uyari"><strong>Not:</strong> Su izin kayitlari calisma dosyasindaki bir personelle eslesmedi: ' +
+          o.eslesmeyenIzinler.map(iz => escapeHtml(iz.isim || '(isimsiz)')).join(', ') + '</div>';
+      }
+
+      sonuc.innerHTML =
+        '<div class="ozet-bilgi">' +
+          '<span><b>Donem:</b> ' + ayAd + ' ' + o.yil + '</span>' +
+          '<span><b>Ayin is gunu:</b> ' + o.ayinIsGunu + '</span>' +
+          '<span><b>Resmi tatil:</b> ' + o.resmiGun + ' gun</span>' +
+          '<span><b>Gunluk saat:</b> ' + o.gunlukSaat + '</span>' +
+          '<span><b>Personel:</b> ' + o.personeller.length + '</span>' +
+        '</div>' +
+        '<div class="tablo-sar"><table>' +
+          '<thead><tr>' +
+            '<th>Personel</th>' +
+            '<th>Calisilan Saat</th>' +
+            '<th>Izin</th>' +
+            '<th>Resmi Izin</th>' +
+            '<th>Calismasi Gereken</th>' +
+            '<th>Durum (fark)</th>' +
+          '</tr></thead>' +
+          '<tbody>' + satirlar + '</tbody>' +
+        '</table></div>' +
+        uyari +
+        '<details><summary>Detaylar</summary>' +
+          '<p style="margin-top:8px"><strong>Bu ayin resmi tatilleri:</strong></p>' + resmiHtml +
+          '<p style="margin-top:8px">Okunan personel: ' + data.detay.personelSayisi +
+          ' · Izin kaydi: ' + data.detay.izinKaydiSayisi + '</p>' +
+          '<p style="margin-top:8px"><strong>OCR (izin gorseli):</strong><br><em>' +
+          escapeHtml(data.detay.ocrMetin || '') + '</em></p>' +
+        '</details>';
+
+      // Satira tiklaninca ilgili detay satirini ac/kapa.
+      sonuc.querySelectorAll('tr.pers').forEach(tr => {
+        tr.addEventListener('click', () => {
+          const idx = tr.getAttribute('data-idx');
+          const detay = sonuc.querySelector('tr.detay[data-detay="' + idx + '"]');
+          const acik = detay.style.display !== 'none';
+          detay.style.display = acik ? 'none' : 'table-row';
+          tr.classList.toggle('acik', !acik);
+        });
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+  </script>
+</body>
+</html>
