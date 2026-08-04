@@ -28,6 +28,100 @@ def group_by_company(entries: list[dict]) -> list[dict]:
     ]
 
 
+# Yemek sonuc bildirimi (DM) icin ayar anahtarlari — apps/office_bot/views.py
+# (Ayarlar formu) ve apps/office_bot/scheduler.py (otomatik gonderim) ikisi de
+# BU anahtarlari kullanir; string'in tek yerde tanimli olmasi icin burada.
+MEAL_RESULT_ENABLED_KEY = "meal_result_enabled"
+MEAL_RESULT_TIME_KEY = "meal_result_notify_time"
+MEAL_RESULT_USER_ID_KEY = "meal_result_discord_user_id"
+MEAL_RESULT_LAST_SENT_KEY = "meal_result_last_sent_date"
+MEAL_RESULT_DEFAULT_TIME = "15:30"
+
+# Discord'un tek bir embed alani (field.value) icin izin verdigi karakter
+# sinirini asmamak icin uzun kisi listeleri parcalara bolunur.
+_FIELD_VALUE_LIMIT = 1024
+_MAX_FIELDS = 25
+_RESULT_EMBED_COLOR = 0x2ECC71
+
+
+def _split_field_value(text):
+    """Bir alan degerini satir satir, 1024 karakteri asmayacak parcalara boler."""
+    if len(text) <= _FIELD_VALUE_LIMIT:
+        return [text]
+
+    chunks = []
+    current, current_len = [], 0
+    for line in text.split("\n"):
+        added_len = len(line) + 1
+        if current and current_len + added_len > _FIELD_VALUE_LIMIT:
+            chunks.append("\n".join(current))
+            current, current_len = [], 0
+        current.append(line)
+        current_len += added_len
+    if current:
+        chunks.append("\n".join(current))
+    return chunks
+
+
+def build_result_embed(menu_date):
+    """
+    Bir gunun yemek katilim sonuclarini sirkete gore gruplanmis, DM olarak
+    gonderilmeye hazir bir Discord embed'i (dict) olarak uretir.
+
+    Ayni get_participation()/group_by_company() mantigini kullanir — admin
+    panelindeki "Katilim" gorunumuyle (bkz. views.py _context) BIREBIR ayni
+    kaynaktan besleniyor, ayrica bir sorgu/gruplama yazilmadi.
+    """
+    participation = get_participation(menu_date)
+    counts = participation["counts"]
+    yes_by_company = {g["company"]: g["people"] for g in group_by_company(participation["yes"])}
+    no_by_company = {g["company"]: g["people"] for g in group_by_company(participation["no"])}
+
+    companies = sorted(
+        set(yes_by_company) | set(no_by_company),
+        key=lambda c: (c == UNASSIGNED_COMPANY, c),
+    )
+
+    fields = []
+    for company in companies:
+        yes_people = yes_by_company.get(company, [])
+        no_people = no_by_company.get(company, [])
+        lines = [f"✅ Yiyecekler ({len(yes_people)})"]
+        lines += [f"• {p['name']}" for p in yes_people]
+        lines.append(f"❌ Yemeyecekler ({len(no_people)})")
+        lines += [f"• {p['name']}" for p in no_people]
+
+        for idx, chunk in enumerate(_split_field_value("\n".join(lines))):
+            name = f"🏢 {company}" if idx == 0 else f"🏢 {company} (devam)"
+            fields.append({"name": name, "value": chunk, "inline": False})
+
+    # Ozet alani icin her zaman yer birakilsin diye sirket alanlari, toplam
+    # 25 alan sinirinin bir eksigine kadar tutulur; asarsa kesilip belirtilir.
+    if len(fields) > _MAX_FIELDS - 1:
+        fields = fields[: _MAX_FIELDS - 2] + [{
+            "name": "⚠️ Not",
+            "value": "Alan sınırı nedeniyle bazı şirketler burada gösterilemedi. Tüm sonuçlar için Portal'daki Yemek Sistemi ekranına bakın.",
+            "inline": False,
+        }]
+
+    fields.append({
+        "name": "📊 Özet",
+        "value": (
+            f"Toplam Personel: {counts['total']}\n"
+            f"Yiyecek: {counts['yes']}\n"
+            f"Yemeyecek: {counts['no']}\n"
+            f"Cevap Vermeyen: {counts['pending']}"
+        ),
+        "inline": False,
+    })
+
+    return {
+        "title": "🍽️ Bugünkü Yemek Katılım Sonuçları",
+        "color": _RESULT_EMBED_COLOR,
+        "fields": fields,
+    }
+
+
 def is_open(menu_date: str) -> bool:
     """
     Anket açık mı? KURAL: menünün ait olduğu günün SONUNDA otomatik kapanır —

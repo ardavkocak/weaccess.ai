@@ -107,6 +107,7 @@ LOGGING = {
     },
     "loggers": {
         "hr": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "office_bot": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
 }
 

@@ -58,6 +58,14 @@ MEAL_SCHEDULE_ENABLED_KEY = "meal_notify_enabled"
 MEAL_SCHEDULE_DEFAULT_TIME = "10:00"
 _TIME_PATTERN = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$")
 
+# Yemek sonuç bildirimi (DM): anahtarlar meal_vote_service'te tanımlı — AYNI
+# anahtarlar apps/office_bot/scheduler.py tarafından da okunur, tek kaynak
+# meal_vote_service.py olsun diye burada tekrar tanımlanmaz.
+MEAL_RESULT_ENABLED_KEY = meal_vote_service.MEAL_RESULT_ENABLED_KEY
+MEAL_RESULT_TIME_KEY = meal_vote_service.MEAL_RESULT_TIME_KEY
+MEAL_RESULT_USER_ID_KEY = meal_vote_service.MEAL_RESULT_USER_ID_KEY
+MEAL_RESULT_DEFAULT_TIME = meal_vote_service.MEAL_RESULT_DEFAULT_TIME
+
 
 def _decorate_menu(menu):
     """Bir menu dict'ine (meal_service._hydrate çıktısı) gösterim alanları ekler."""
@@ -470,6 +478,8 @@ class MealTestActionsView(AdminRequiredMixin, View):
             "clear_results": self._clear_results,
             "send_test_dm": lambda: self._send_test_dm(request.POST.get("discord_user_id")),
             "save_schedule": lambda: self._save_schedule(request.POST),
+            "save_result_dm_settings": lambda: self._save_result_dm_settings(request.POST),
+            "send_test_result_dm": self._send_test_result_dm,
         }
         log.warning("[SCHEDULE-TESHIS] View'in kabul ettigi action degerleri=%s", list(handlers.keys()))
         handler = handlers.get(action)
@@ -623,6 +633,58 @@ class MealTestActionsView(AdminRequiredMixin, View):
         return {"ok": True, "message": f"Bildirim saati {time_value} olarak kaydedildi (otomatik gönderim {state})."}
 
     @staticmethod
+    def _save_result_dm_settings(data):
+        """
+        Yemek sonuç bildirimi (DM) ayarlarını kaydeder. Zamanlama, tıpkı
+        _save_schedule'daki gibi kod içinde SABİT değildir — apps/office_bot/
+        scheduler.py her dakika bu AYNI anahtarları okur (bkz. o dosyanın
+        başlığındaki mimari not); burada kaydetmek bir sonraki dakika
+        kontrolünde devreye girer, sunucu yeniden başlatmaya gerek yoktur.
+        """
+        time_value = str(data.get("meal_result_notify_time") or "").strip()
+        if not _TIME_PATTERN.match(time_value):
+            return {"ok": False, "message": "Geçerli bir gönderim saati girin (SS:DD, örn. 15:30)."}
+
+        user_id = str(data.get("meal_result_discord_user_id") or "").strip()
+        enabled = "1" if data.get("meal_result_enabled") in ("on", "1", "true") else "0"
+        if enabled == "1" and not settings_service.SNOWFLAKE_PATTERN.match(user_id):
+            return {"ok": False, "message": "Geçerli bir Discord Kullanıcı ID'si girin (17-20 haneli sayı)."}
+
+        settings_service.set(MEAL_RESULT_TIME_KEY, time_value)
+        settings_service.set(MEAL_RESULT_USER_ID_KEY, user_id)
+        settings_service.set(MEAL_RESULT_ENABLED_KEY, enabled)
+
+        state = "açık" if enabled == "1" else "kapalı"
+        return {"ok": True, "message": f"Yemek sonuç bildirimi {time_value} olarak kaydedildi (otomatik gönderim {state})."}
+
+    @staticmethod
+    def _send_test_result_dm():
+        """
+        "Test Gönder": GERÇEK bugünkü katılım sonuçlarını, ayarlarda kayıtlı
+        Discord Kullanıcı ID'sine DM olarak gönderir. Kanala hiçbir mesaj
+        gönderilmez — yalnızca open_dm_channel + DM (bkz. discord_client).
+        """
+        user_id = settings_service.get(MEAL_RESULT_USER_ID_KEY)
+        if not user_id:
+            return {"ok": False, "message": "Önce sonuç bildirimi için bir Discord Kullanıcı ID'si kaydedin."}
+
+        embed = meal_vote_service.build_result_embed(today_iso())
+        embed["title"] = "🧪 TEST — " + embed["title"]
+        ok, detail = discord_client.send_direct_message(user_id, embeds=[embed])
+        return {"ok": ok, "message": detail}
+
+    @staticmethod
+    def _result_dm_status():
+        time_value = settings_service.get(MEAL_RESULT_TIME_KEY, MEAL_RESULT_DEFAULT_TIME)
+        if not _TIME_PATTERN.match(time_value):
+            time_value = MEAL_RESULT_DEFAULT_TIME
+        return {
+            "enabled": settings_service.get(MEAL_RESULT_ENABLED_KEY, "0") == "1",
+            "time": time_value,
+            "discord_user_id": settings_service.get(MEAL_RESULT_USER_ID_KEY),
+        }
+
+    @staticmethod
     def _schedule_status():
         time_value = settings_service.get(MEAL_SCHEDULE_TIME_KEY, MEAL_SCHEDULE_DEFAULT_TIME)
         if not _TIME_PATTERN.match(time_value):
@@ -659,6 +721,7 @@ class MealTestActionsView(AdminRequiredMixin, View):
             "menu": menu,
             "participation": participation,
             "schedule": cls._schedule_status(),
+            "result_dm": cls._result_dm_status(),
         }
 
 

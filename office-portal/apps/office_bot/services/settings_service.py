@@ -55,6 +55,23 @@ def set(key, value):
     Settings.objects.update_or_create(pk=key, defaults={"value": str(value or "")})
 
 
+def claim_once_per_day(key, today):
+    """
+    Bir anahtari 'bugun icin' atomik olarak ele gecirir: satirin degeri zaten
+    `today` degilse `today` yapar ve True doner; zaten `today` ise (bu surec
+    ya da baska bir gunicorn worker'i tarafindan zaten claim edilmisse)
+    hicbir sey degistirmeden False doner.
+
+    Birden fazla worker'in ayni gunluk isi (orn. bir DM gonderimini) birden
+    cok kez tetiklemesini engellemek icin kullanilir — apps.hr.scheduler'in
+    unique-constraint'li HrSentReminder yaklasiminin key/value tablosu
+    karsiligi (bkz. apps/office_bot/scheduler.py).
+    """
+    Settings.objects.get_or_create(pk=key, defaults={"value": ""})
+    updated = Settings.objects.filter(pk=key).exclude(value=today).update(value=today)
+    return updated > 0
+
+
 def validate_discord_settings(data):
     """Discord Ayarları sayfası: guild/kanal ID'leri + bot token + şirket adı."""
     errors = []

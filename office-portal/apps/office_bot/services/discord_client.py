@@ -117,8 +117,12 @@ def build_meal_vote_components(menu_date, disabled=False):
     ]
 
 
-def send_channel_message(channel_id, content, flow_id=None, step=None, components=None):
-    payload = {"content": content}
+def send_channel_message(channel_id, content=None, flow_id=None, step=None, components=None, embeds=None):
+    payload = {}
+    if content is not None:
+        payload["content"] = content
+    if embeds is not None:
+        payload["embeds"] = embeds
     if components is not None:
         payload["components"] = components
     elif flow_id is not None:
@@ -164,7 +168,7 @@ def open_dm_channel(user_id):
     return resp.json()["id"]
 
 
-def send_direct_message(user_id, content):
+def send_direct_message(user_id, content=None, embeds=None):
     """
     Hata firlatmaz — DM basarisiz olursa (ok, message) doner (dutyNotifier.service.js
     ile ayni sozlesme). Node botunun bot.js -> sendDirectMessage() fonksiyonunun
@@ -173,12 +177,15 @@ def send_direct_message(user_id, content):
       2) POST /channels/{channel_id}/messages {content}       (discord.js: dmChannel.send())
     Node tarafi bunu bir discord.js Client uzerinden (Gateway baglantili) yapar,
     burasi dogrudan HTTP ile yapar; Discord API seviyesinde ikisi ayni istektir.
+
+    `embeds` verilirse (orn. yemek sonuc bildirimi) mesaj bir Discord Embed
+    olarak gonderilir; `content` de birlikte verilebilir ama zorunlu degildir.
     """
     log.warning("[DM-TESHIS] send_direct_message() cagrildi. Fonksiyon adi=discord_client.send_direct_message, gelen user_id=%r", user_id)
     try:
         channel_id = open_dm_channel(user_id)
         log.warning("[DM-TESHIS] DM kanali acildi: channel_id=%s", channel_id)
-        result = send_channel_message(channel_id, content)
+        result = send_channel_message(channel_id, content, embeds=embeds)
         log.warning("[DM-TESHIS] Mesaj gonderildi. Discord mesaj id=%s", result.get("id"))
         return True, "Özel mesaj gönderildi."
     except DiscordError as exc:
