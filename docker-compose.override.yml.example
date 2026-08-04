@@ -1,0 +1,79 @@
+# Ortama ozgu degerler ve sirlar. Kopyalayip docker-compose.override.yml
+# yapin (.gitignore'dadir); compose bu dosyayi otomatik okur.
+#
+#   cp docker-compose.override.yml.example docker-compose.override.yml
+#
+# zimmet-sistemi/office-portal ile ayni desen izlenir. Gercek uretim
+# sirlarini burada (example dosyasinda) tutmayin; asagidakiler placeholder'dir.
+
+services:
+  db:
+    environment:
+      POSTGRES_DB: office_portal_db
+      POSTGRES_USER: office_portal_user
+      POSTGRES_PASSWORD: "degistir-bu-sifreyi"
+
+  portal:
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "degistir-bu-anahtari-gercek-bir-django-secret-key-ile"
+      # Sunucunun IP'si ve/veya domaini (virgulle ayirin).
+      ALLOWED_HOSTS: "18.196.168.235,localhost,127.0.0.1"
+      TIME_ZONE: "Europe/Istanbul"
+
+      DB_NAME: office_portal_db
+      DB_USER: office_portal_user
+      DB_PASSWORD: "degistir-bu-sifreyi"
+
+      EMAIL_BACKEND: "django.core.mail.backends.smtp.EmailBackend"
+      EMAIL_HOST: "smtp.gmail.com"
+      EMAIL_PORT: "587"
+      EMAIL_USE_TLS: "True"
+      EMAIL_HOST_USER: ""
+      EMAIL_HOST_PASSWORD: ""
+      DEFAULT_FROM_EMAIL: "Ofis Portali <noreply@ofisportali.local>"
+
+      # discord-bot container'ini docker socket uzerinden (yeniden)
+      # olustururken kullanilacak, HOST'un gordugu mutlak yol (sunucudaki
+      # gercek yola gore duzenleyin, orn. /home/kullanici/weaccess.ai/discord-bot).
+      DISCORD_BOT_HOST_PATH: "/absolute/path/to/weaccess.ai/discord-bot"
+
+    # Disariya acilacak port yalnizca burada tanimlidir.
+    ports:
+      - "8113:8000"
+
+  zimmet-db:
+    environment:
+      POSTGRES_DB: zimmet_db
+      POSTGRES_USER: zimmet_user
+      POSTGRES_PASSWORD: "degistir-bu-sifreyi"
+
+  zimmet:
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "degistir-bu-anahtari-gercek-bir-django-secret-key-ile"
+      ALLOWED_HOSTS: "18.196.168.235,localhost,127.0.0.1,0.0.0.0"
+      TIME_ZONE: "Europe/Istanbul"
+
+      DB_NAME: zimmet_db
+      DB_USER: zimmet_user
+      DB_PASSWORD: "degistir-bu-sifreyi"
+
+      EMAIL_BACKEND: "django.core.mail.backends.console.EmailBackend"
+      EMAIL_HOST: "smtp.gmail.com"
+      EMAIL_PORT: "587"
+      EMAIL_USE_TLS: "True"
+      EMAIL_HOST_USER: ""
+      EMAIL_HOST_PASSWORD: ""
+      DEFAULT_FROM_EMAIL: "Zimmet Sistemi <noreply@zimmet.local>"
+    ports:
+      - "8001:8000"
+
+  dokumantasyon:
+    ports:
+      - "5000:5000"
+
+# ik-otomasyon ve dokumantasyon icin sirlar (Google Sheets vb.) bu dosyada
+# DEGIL, kendi klasorlerindeki .env dosyalarindadir (ik-otomasyon/.env,
+# dokumantasyon-otomasyon/.env) - ilgili .env.example'lardan kopyalayip
+# doldurun, docker-compose.yml bunlari env_file ile otomatik okur.

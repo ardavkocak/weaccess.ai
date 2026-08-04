@@ -1,0 +1,172 @@
+# weaccess.ai - tek-port canli dagitim (production) derlemesi.
+#
+# BU DOSYA GIT'E GIRER. Hicbir gizli deger icermez; yalnizca yapiyi tanimlar.
+# Degerler docker-compose.override.yml icindedir (.gitignore'da).
+#
+# Ilk kurulumda:
+#   cp docker-compose.override.yml.example docker-compose.override.yml
+#   # override dosyasini doldurun (sifreler, SECRET_KEY, ALLOWED_HOSTS, port, vb.)
+#   docker compose up -d --build
+#
+# Repodaki TUM alt projeleri tek `docker compose up` ile ayaga kaldirir
+# (start-all.ps1'in Linux/tek-dosya karsiligi):
+#   - db            -> office-portal'in PostgreSQL veritabani
+#   - portal        -> tum ana modullerin (zimmet, gorev takibi, yemek, IK,
+#                      aylik takip, dokumantasyon) birlestigi TEK Django
+#                      uygulamasi (bkz. office-portal/portal/modules.py)
+#   - gorev-takibi  -> office-portal'in okudugu SQLite'i ureten ayri servis
+#                      (ofis-gorev-takibi)
+#   - zimmet        -> zimmet-sistemi'nin kendi (standalone) hali, ayri portta
+#   - ik-otomasyon  -> ik-otomasyon'un kendi (standalone) hali, ayri portta
+#   - aylik-takip   -> aylik-takip, disariya port acmaz (yalnizca arka planda)
+#   - dokumantasyon -> dokumantasyon-otomasyon'un kendi (standalone) hali
+#
+# discord-bot BURADA TANIMLI DEGIL: office-portal, onu Docker socket
+# uzerinden ayrica olusturup yonetiyor (bkz.
+# office-portal/apps/discordbot/docker_control.py). Ayarlar sayfasindan
+# (Hatirlatici Bot) token/servis hesabi girilip kaydedildiginde otomatik
+# ayaga kalkar. Burada normal bir servis olarak da tanimlarsak,
+# docker_control.py container'i silip yeniden olustururken Compose'un
+# takibiyle cakisir - bu yuzden kasitli olarak disarida birakildi.
+#
+# NOT: Bu dosyayi calistirirken alt projelerin kendi docker-compose.yml'lerini
+# (start-all.ps1 ile) AYNI ANDA calistirmayin - container isimleri (orn.
+# c_office-portal-web) cakisir. Bu dosya, start-all.ps1'in tek-port canli
+# dagitim icin yerini alir; yerel gelistirmede start-all.ps1 oldugu gibi
+# kullanilmaya devam edebilir.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: c_office-portal-db
+    volumes:
+      - office_portal_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  portal:
+    build:
+      context: ./office-portal
+      dockerfile: Dockerfile
+    container_name: c_office-portal-web
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      # ofis-gorev-takibi'nin SQLite dosyasi asagidaki volume ile ayni yola
+      # baglanir; router.py bu yolu okur.
+      OFFICE_BOT_DB_PATH: /ofis-gorev-takibi-data/office-task-tracking.sqlite
+      # discord-bot container'ini docker SDK ile (yeniden) olustururken volume
+      # kaynak yollari HOST'un gordugu mutlak yol olmali - gercek deger
+      # docker-compose.override.yml'de (makineye ozgu).
+      DISCORD_BOT_HOST_PATH: ""
+    volumes:
+      - ./office-portal:/app
+      - ./office-portal/staticfiles:/app/staticfiles
+      - ./office-portal/media:/app/media
+      # ofis-gorev-takibi konteynerinin yazdigi ayni host klasoru: iki servis
+      # ayni SQLite dosyasini paylasir.
+      - ./ofis-gorev-takibi/ofis-data:/ofis-gorev-takibi-data
+      # discord-bot: ayarlar sayfasi .env/credentials.json dosyalarini buraya yazar.
+      - ./discord-bot:/discord-bot-src
+      # Docker socket: discord-bot modulunun Baslat/Durdur/Yeniden Olustur
+      # kontrolu icin. DIKKAT: bu, portal container'ina host'taki TUM Docker
+      # container'lari uzerinde kontrol yetkisi verir.
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
+      gorev-takibi:
+        condition: service_started
+    restart: unless-stopped
+
+  gorev-takibi:
+    build:
+      context: ./ofis-gorev-takibi
+    image: office-task-tracking:latest
+    container_name: c_office-task-tracking_app
+    env_file:
+      - ./ofis-gorev-takibi/.env
+    environment:
+      # .env'de ne yazarsa yazsin, veritabani konteyner icinde her zaman
+      # /app/data altinda (asagidaki volume) olmali ki kalici olsun.
+      DATABASE_FILE: data/office-task-tracking.sqlite
+      PORT: 3000
+    volumes:
+      - ./ofis-gorev-takibi/ofis-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:'+(process.env.PORT||3000)+'/giris',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped
+
+  zimmet-db:
+    image: postgres:16-alpine
+    container_name: c_inventory_system-db
+    volumes:
+      - zimmet_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  zimmet:
+    build:
+      context: ./zimmet-sistemi
+      dockerfile: Dockerfile
+    container_name: c_inventory_system-web
+    environment:
+      DB_HOST: zimmet-db
+      DB_PORT: 5432
+    volumes:
+      - ./zimmet-sistemi:/app
+      - ./zimmet-sistemi/staticfiles:/app/staticfiles
+      - ./zimmet-sistemi/media:/app/media
+    depends_on:
+      zimmet-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ik-otomasyon:
+    build:
+      context: ./ik-otomasyon
+    image: ik-otomasyon:latest
+    container_name: c_ik-otomasyon_app
+    env_file:
+      - ./ik-otomasyon/.env
+    environment:
+      PORT: 3002
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+
+  aylik-takip:
+    build:
+      context: ./aylik-takip
+    image: aylik-takip-ajani:latest
+    container_name: c_aylik-takip_app
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  dokumantasyon:
+    build:
+      context: ./dokumantasyon-otomasyon
+    image: dokumantasyon-otomasyon:latest
+    container_name: c_dokumantasyon-otomasyon_web
+    env_file:
+      - ./dokumantasyon-otomasyon/.env
+    restart: unless-stopped
+
+volumes:
+  office_portal_postgres_data:
+  zimmet_postgres_data:

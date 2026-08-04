@@ -1,0 +1,5 @@
+# Ortama ozgu degerler ve sirlar - docker-compose.override.yml.example'dan kopyalanir.
+docker-compose.override.yml
+
+# Windows'a ozgu yerel gelistirme betigi - Linux sunucuda kullanilmiyor.
+start-all.ps1
